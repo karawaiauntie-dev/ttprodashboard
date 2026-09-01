@@ -872,6 +872,7 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 </style>
 </head>
 <body>
+<audio id="holidayAudio" preload="auto" loop><source src="/jingebell.mp3" type="audio/mpeg"></audio>
 <div class="snow-layer" aria-hidden="true"></div>
 <div class="page-video-bg is-visible" aria-hidden="true" id="bgVideoLayer"></div>
 <div class="page-video-overlay is-visible" aria-hidden="true" id="bgVideoOverlay"></div>
@@ -974,18 +975,18 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
           <span class="platforms-hint">Join Now!</span>
         </div>
         <div class="logo-gallery" aria-label="TTPRO promotion platforms">
-          <div class="logo-item"><img src="k1.jpg" alt="Platform logo 1" loading="lazy"></div>
-          <div class="logo-item"><img src="k2.jpg" alt="Platform logo 2" loading="lazy"></div>
-          <div class="logo-item"><img src="k3.jpg" alt="Platform logo 3" loading="lazy"></div>
-          <div class="logo-item"><img src="k4.jpg" alt="Platform logo 4" loading="lazy"></div>
-          <div class="logo-item"><img src="k5.jpg" alt="Platform logo 5" loading="lazy"></div>
-          <div class="logo-item"><img src="k6.jpg" alt="Platform logo 6" loading="lazy"></div>
-          <div class="logo-item"><img src="k7.jpg" alt="Platform logo 7" loading="lazy"></div>
-          <div class="logo-item"><img src="k8.jpg" alt="Platform logo 8" loading="lazy"></div>
-          <div class="logo-item"><img src="k9.jpg" alt="Platform logo 9" loading="lazy"></div>
-          <div class="logo-item"><img src="k10.jpg" alt="Platform logo 10" loading="lazy"></div>
-          <div class="logo-item"><img src="k11.jpg" alt="Platform logo 11" loading="lazy"></div>
-          <div class="logo-item"><img src="k12.jpg" alt="Platform logo 12" loading="lazy"></div>
+        <img src="/k1.jpg" alt="K1">
+<img src="/k2.jpg" alt="K2">
+<img src="/k3.jpg" alt="K3">
+<img src="/k4.jpg" alt="K4">
+<img src="/k5.jpg" alt="K5">
+<img src="/k6.jpg" alt="K6">
+<img src="/k7.jpg" alt="K7">
+<img src="/k8.jpg" alt="K8">
+<img src="/k9.jpg" alt="K9">
+<img src="/k10.jpg" alt="K10">
+<img src="/k11.jpg" alt="K11">
+<img src="/k12.jpg" alt="K12">
         </div>
       </section>
 
@@ -1033,9 +1034,9 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
     </button>
   </div>
 
-  <audio id="holidayAudio" preload="auto" loop>
-    <source src="/jinglebell.mp3" type="audio/mpeg">
-  </audio>
+  <audio id="christmasMusic" loop>
+    <source src="/jingebell.mp3" type="audio/mpeg">
+</audio>
 
 </div>
 
@@ -1048,53 +1049,42 @@ document.addEventListener("DOMContentLoaded", function () {
   const bgVideoOverlay = document.getElementById("bgVideoOverlay");
   const toggleBackgroundBtn = document.getElementById("toggleBackgroundBtn");
 
+  const setStatus = (text) => { if (status) status.textContent = text; };
+  const setPlayLabel = () => {
+    if (playBtn && audio) playBtn.textContent = audio.paused ? "▶ Play" : "⏸ Pause";
+  };
+  const setBackgroundVisible = (visible) => {
+    if (bgVideoLayer) bgVideoLayer.classList.toggle("is-visible", visible);
+    if (bgVideoOverlay) bgVideoOverlay.classList.toggle("is-visible", visible);
+  };
+
   if (audio) {
     audio.volume = 0.35;
     audio.loop = true;
+    audio.addEventListener("canplay", () => setStatus("Seasonal music ready 🎄"));
+    audio.addEventListener("play", () => { setPlayLabel(); setStatus("Playing seasonal music 🎄"); });
+    audio.addEventListener("pause", () => { setPlayLabel(); setStatus("Music paused"); });
+    audio.addEventListener("error", () => setStatus("Music file not found"));
   }
 
-  if (bgVideoLayer) bgVideoLayer.classList.add("is-visible");
-  if (bgVideoOverlay) bgVideoOverlay.classList.add("is-visible");
-
-  if (audio) {
-    audio.addEventListener("canplay", function () {
-    status.textContent = "Seasonal music ready 🎄";
-
-    audio.play().then(function () {
-      playBtn.textContent = "⏸ Pause";
-      status.textContent = "Playing seasonal music 🎄";
-    }).catch(function () {
-      status.textContent = "Click play to start the music 🎄";
-    });
-  });
-
-    audio.addEventListener("error", function () {
-      status.textContent = "❌ Cannot load jinglebell.mp3";
-      console.error("Cannot load:", audio.currentSrc);
-    });
-  }
+  setBackgroundVisible(true);
 
   if (playBtn && audio) {
     playBtn.addEventListener("click", async function () {
-      if (audio.paused) {
-        try {
-          await audio.play();
-          playBtn.textContent = "⏸ Pause";
-          status.textContent = "Playing seasonal music 🎄";
-        } catch (e) {
-          console.error(e);
-        }
-      } else {
-        audio.pause();
-        playBtn.textContent = "▶ Play";
-        status.textContent = "Music paused";
+      try {
+        if (audio.paused) await audio.play();
+        else audio.pause();
+        setPlayLabel();
+      } catch (e) {
+        console.error(e);
+        setStatus("Click again to play the music");
       }
     });
   }
 
-  if (toggleBackgroundBtn && bgVideoLayer) {
+  if (toggleBackgroundBtn) {
     toggleBackgroundBtn.addEventListener("click", function () {
-      const visible = !bgVideoLayer.classList.contains("is-visible");
+      const visible = !(bgVideoLayer && bgVideoLayer.classList.contains("is-visible"));
       setBackgroundVisible(visible);
     });
   }
@@ -1102,13 +1092,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (audio && playBtn) {
     document.addEventListener("click", async function () {
       if (audio.paused) {
-        try {
-          await audio.play();
-          playBtn.textContent = "⏸ Pause";
-          status.textContent = "Playing seasonal music 🎄";
-        } catch (e) {
-          console.error(e);
-        }
+        try { await audio.play(); } catch (_) {}
       }
     }, { once: true });
   }
@@ -1435,14 +1419,25 @@ function toast(msg, type = '') {
 }
 
 async function api(url, opts = {}) {
-  const r = await fetch(url, {
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-    ...opts
-  });
+  let r;
+  try {
+    r = await fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+      ...opts
+    });
+  } catch {
+    throw new Error('Unable to reach the server. Please refresh and try again.');
+  }
+
   let d = {};
-  try { d = await r.json(); } catch {}
-  if (!r.ok) throw new Error(d.message || 'Request failed');
+  const contentType = r.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try { d = await r.json(); } catch {}
+  }
+  if (!r.ok) {
+    throw new Error(d.message || `Request failed (${r.status}). Please try again.`);
+  }
   return d;
 }
 
