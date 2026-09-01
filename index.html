@@ -1424,14 +1424,25 @@ function toast(msg, type = '') {
 }
 
 async function api(url, opts = {}) {
-  const r = await fetch(url, {
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-    ...opts
-  });
+  let r;
+  try {
+    r = await fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+      ...opts
+    });
+  } catch {
+    throw new Error('Unable to reach the server. Please refresh and try again.');
+  }
+
   let d = {};
-  try { d = await r.json(); } catch {}
-  if (!r.ok) throw new Error(d.message || 'Request failed');
+  const contentType = r.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try { d = await r.json(); } catch {}
+  }
+  if (!r.ok) {
+    throw new Error(d.message || `Request failed (${r.status}). Please try again.`);
+  }
   return d;
 }
 
