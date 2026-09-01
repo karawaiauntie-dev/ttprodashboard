@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Database (local only - Railway will create its own)
+database.sqlite
+*.sqlite
+*.sqlite3
+
+# Environment variables (never commit secrets)
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

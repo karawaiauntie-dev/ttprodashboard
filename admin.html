@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TTPRO — Admin Panel</title>
+<style>
+:root{
+  --bg:#0a1628;
+  --bg2:#1a2a4a;
+  --panel:#15233d;
+  --panel2:#0f1f3a;
+  --border:#2563eb;
+  --border2:#3b82f6;
+  --gold:#2563eb;
+  --gold2:#60a5fa;
+  --gold3:#1e40af;
+  --gold-glow:rgba(37,99,235,0.18);
+  --red:#c0392b;
+  --red2:#e74c3c;
+  --red3:#ff6b6b;
+  --green:#10b981;
+  --green2:#34d399;
+  --green3:#6ee7b7;
+  --text:#f4f7fb;
+  --muted:#a5b4c4;
+  --muted2:#718397;
+  --radius:12px;
+  --shadow:0 24px 80px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg, #0a1628 0%, #1a2a4a 50%, #0f1f3a 100%);color:var(--text);min-height:100vh;font-size:14px}
+button,input,select,textarea{font:inherit;outline:none}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(37,99,235,.75);outline-offset:2px}
+.hidden{display:none!important}
+
+/* Modern blue admin theme */
+:root{--bg:#0a1628;--bg2:#15233d;--panel:#1a2a4a;--panel2:#0f1f3a;--border:#2563eb;--border2:#3b82f6;--gold:#2563eb;--gold2:#60a5fa;--gold3:#1e40af;--red:#c0392b;--red2:#e74c3c;--red3:#ff6b6b;--green:#10b981;--green2:#34d399;--green3:#6ee7b7;--text:#f4f7fb;--muted:#a5b4c4;--muted2:#718397}
+body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96) 100%)}
+.topbar{background:rgba(10,20,35,.96);border-color:var(--border2)}
+.nav-tabs{background:rgba(20,30,50,.96);border-color:var(--border)}
+.stat-card,.card,.modal-box,.login-card{background:linear-gradient(135deg,rgba(20,30,50,.95) 0%, rgba(15,25,45,.95) 100%);border-color:var(--border)}
+.table th{background:rgba(10,20,35,.5);color:var(--gold2)}
+.group input,.cash-form textarea,#notifUser,#notifMsg,#taskDesc{background:rgba(20,30,50,.5)!important;border-color:var(--border)!important}
+.btn-gold{background:linear-gradient(135deg,#2563eb 0%, #3b82f6 100%);color:#fff}
+.modal-overlay{background:rgba(10,20,35,.82)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:9px}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--panel2);border:1px solid var(--gold3);color:var(--gold2);
+  padding:11px 22px;border-radius:50px;font-size:13px;font-weight:700;
+  opacity:0;pointer-events:none;transition:.25s;z-index:999;white-space:nowrap;
+  box-shadow:0 4px 30px rgba(0,0,0,.5);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.ok{border-color:var(--green2);color:var(--green3)}
+#toast.err{border-color:var(--red2);color:var(--red3)}
+
+/* ═══════════ LOGIN ═══════════ */
+#loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 0%, #1a0f2e 0%, #08060a 60%);
+  padding:20px;
+}
+.login-card{
+  width:100%;max-width:400px;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:20px;padding:36px;
+  box-shadow:var(--shadow);
+  animation:fadeUp .35s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.login-logo{
+  text-align:center;margin-bottom:6px;
+}
+.login-logo .logo-text{
+  font-size:42px;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(135deg,#ffd96a,#c8960a);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:block;
+}
+.login-logo .logo-sub{
+  font-size:11px;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-top:2px;
+}
+.login-divider{
+  height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent);
+  margin:20px 0;
+}
+.login-title{text-align:center;font-size:15px;color:var(--muted);margin-bottom:22px;letter-spacing:1px}
+
+.group{margin-bottom:15px}
+.group label{display:block;font-size:11px;font-weight:700;color:var(--gold3);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.group input{
+  width:100%;padding:13px 14px;border-radius:10px;
+  border:1px solid var(--border2);background:var(--bg2);
+  color:var(--text);transition:border .2s;
+}
+.group input:focus{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(184,134,11,.12)}
+.form-err{color:var(--red3);font-size:12px;min-height:16px;margin:8px 0 2px;text-align:center}
+
+.btn-gold{
+  width:100%;padding:14px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,#c8960a,#f0c040);
+  color:#0e0b12;font-weight:900;font-size:15px;letter-spacing:.5px;
+  transition:.2s;box-shadow:0 6px 24px rgba(184,134,11,.35);margin-top:4px;
+}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-gold:active{transform:translateY(0)}
+
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ═══════════ ADMIN SHELL ═══════════ */
+#adminShell{display:flex;flex-direction:column;min-height:100vh}
+
+.topbar{
+  height:62px;background:rgba(8,6,10,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 22px;gap:14px;
+  position:sticky;top:0;z-index:20;
+}
+.topbar-logo{
+  font-size:22px;font-weight:900;letter-spacing:2px;flex:1;
+  background:linear-gradient(135deg,#ffd96a,#c8960a);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.topbar-badge{
+  background:rgba(240,192,64,.12);border:1px solid var(--gold3);
+  color:var(--gold2);font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:999px;letter-spacing:.5px;
+}
+.topbar-logout{
+  background:rgba(192,57,43,.15);border:1px solid #6b2218;
+  color:var(--red3);font-size:12px;font-weight:700;
+  padding:8px 14px;border-radius:9px;transition:.2s;
+}
+.topbar-logout:hover{background:rgba(192,57,43,.28)}
+
+/* ── Tabs ── */
+.nav-tabs{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;padding:0 22px;gap:2px;overflow-x:auto;
+}
+.nav-tab{
+  background:none;border:none;color:var(--muted);font-size:13px;font-weight:700;
+  padding:14px 18px;letter-spacing:.3px;position:relative;white-space:nowrap;transition:.2s;
+}
+.nav-tab.active{color:var(--gold2)}
+.nav-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold3),var(--gold2))}
+.nav-tab:hover:not(.active){color:var(--text)}
+
+/* ── Page Content ── */
+.page{padding:22px;max-width:1300px;margin:0 auto;width:100%}
+.page-title{font-size:22px;font-weight:900;color:var(--gold2);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+/* ── Stat Cards ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:18px;
+  transition:.2s;
+}
+.stat-card:hover{border-color:var(--gold3);box-shadow:0 0 20px var(--gold-glow)}
+.stat-card .s-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.stat-card .s-val{font-size:30px;font-weight:900;margin-top:8px}
+.s-val.gold{color:var(--gold2)}
+.s-val.green{color:var(--green3)}
+.s-val.red{color:var(--red3)}
+.s-val.blue{color:#7eb8ff}
+
+/* ── Card / Table ── */
+.card{
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:var(--radius);
+}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.card-head h2{font-size:15px;font-weight:800;color:var(--gold2)}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:9px;padding:8px 12px;
+}
+.search-box input{background:none;border:none;color:var(--text);width:180px;font-size:13px}
+.search-box input::placeholder{color:var(--muted)}
+
+.table-wrap{overflow-x:auto}
+.table{width:100%;border-collapse:collapse;min-width:780px}
+.table th{
+  padding:11px 12px;text-align:left;
+  font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px;
+  border-bottom:1px solid var(--border2);background:var(--bg2);
+}
+.table td{padding:12px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.table tr:last-child td{border-bottom:none}
+.table tbody tr:hover td{background:rgba(240,192,64,.03)}
+
+/* ── Pill badges ── */
+.pill{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.pill.active{background:rgba(39,174,96,.15);color:var(--green3)}
+.pill.frozen{background:rgba(192,57,43,.15);color:var(--red3)}
+.pill.verified{background:rgba(126,184,255,.12);color:#7eb8ff}
+.pill.no{background:rgba(100,100,120,.12);color:var(--muted)}
+.pill.pending{background:rgba(240,192,64,.12);color:var(--gold2)}
+.pill.approved,.pill.completed{background:rgba(39,174,96,.15);color:var(--green3)}
+.pill.rejected{background:rgba(192,57,43,.15);color:var(--red3)}
+
+/* ── Action buttons ── */
+.act-btn{
+  border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:700;transition:.15s;
+}
+.act-details{background:rgba(240,192,64,.12);color:var(--gold2)}
+.act-details:hover{background:rgba(240,192,64,.22)}
+.act-freeze{background:rgba(192,57,43,.15);color:var(--red3)}
+.act-freeze:hover{background:rgba(192,57,43,.28)}
+.act-unfreeze{background:rgba(39,174,96,.15);color:var(--green3)}
+.act-unfreeze:hover{background:rgba(39,174,96,.25)}
+.act-cash{background:rgba(240,192,64,.18);color:var(--gold);border:1px solid var(--gold3)}
+.act-cash:hover{background:rgba(240,192,64,.32)}
+
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);
+  display:grid;place-items:center;padding:20px;z-index:50;
+}
+.modal-box{
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:18px;width:100%;max-width:520px;
+  box-shadow:var(--shadow);animation:fadeUp .25s ease;
+  max-height:88vh;overflow:auto;
+}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);
+}
+.modal-head h3{font-size:17px;font-weight:900;color:var(--gold2)}
+.modal-close{
+  background:var(--bg2);border:1px solid var(--border2);color:var(--muted);
+  width:32px;height:32px;border-radius:8px;font-size:16px;
+}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px 22px}
+
+/* Cash form */
+.cash-form{display:flex;flex-direction:column;gap:14px}
+.cash-form .group{margin:0}
+.cash-form .amount-row{position:relative}
+.cash-form .peso{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--gold2);font-weight:700;pointer-events:none;
+}
+.cash-form input[type=number]{padding-left:28px!important}
+.cash-form textarea{
+  width:100%;padding:11px 13px;border-radius:10px;
+  border:1px solid var(--border2);background:var(--bg2);
+  color:var(--text);resize:vertical;min-height:70px;
+}
+.cash-form textarea:focus{border-color:var(--gold3)}
+
+/* User detail rows */
+.detail-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.detail-row:last-child{border-bottom:none}
+.d-label{font-size:12px;color:var(--muted);font-weight:600}
+.d-val{font-size:13px;font-weight:700;text-align:right}
+
+/* Login history sub-table */
+.sub-table{width:100%;border-collapse:collapse;margin-top:6px}
+.sub-table th,.sub-table td{padding:9px 8px;text-align:left;font-size:12px;border-bottom:1px solid var(--border)}
+.sub-table th{color:var(--muted);font-weight:700}
+.sub-table tr:last-child td{border-bottom:none}
+
+/* Withdrawal list in modal */
+.wd-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.wd-row:last-child{border-bottom:none}
+
+/* Empty state */
+.empty{padding:36px 20px;text-align:center;color:var(--muted);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:8px;opacity:.4}
+
+/* Responsive */
+@media(max-width:900px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .page{padding:14px}
+  .nav-tabs{padding:0 10px}
+}
+@media(max-width:500px){
+  .stats-row{grid-template-columns:1fr}
+  .topbar{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-text">TTPRO</span>
+      <span class="logo-sub">Admin Control Panel</span>
+    </div>
+    <div class="login-divider"></div>
+    <div class="login-title">ADMINISTRATOR ACCESS</div>
+
+    <form id="loginForm">
+      <div class="group">
+        <label>Username</label>
+        <input id="adminUser" type="text" placeholder="Enter admin username" autocomplete="username" required>
+      </div>
+      <div class="group">
+        <label>Password</label>
+        <input id="adminPass" type="password" placeholder="Enter admin password" autocomplete="current-password" required>
+      </div>
+      <div id="loginErr" class="form-err"></div>
+      <button class="btn-gold" type="submit" id="loginBtn">Login to Admin Panel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ ADMIN SHELL ═══ -->
+<div id="adminShell" class="hidden">
+  <header class="topbar">
+    <div class="topbar-logo">TTPRO</div>
+    <span class="topbar-badge">⚙ ADMIN</span>
+    <button class="topbar-logout" id="logoutBtn">Logout</button>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="users">👥 Users</button>
+    <button class="nav-tab" data-tab="withdrawals">💸 Withdrawals</button>
+    <button class="nav-tab" data-tab="tasks">💼 Tasks</button>
+    <button class="nav-tab" data-tab="notifications">🔔 Notifications</button>
+  </nav>
+
+  <!-- ══ USERS TAB ══ -->
+  <div id="tab-users" class="page">
+    <div class="page-title">User Management</div>
+    <div class="page-sub">View, manage and top-up user accounts</div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="s-label">Total Users</div><div class="s-val gold" id="sTotal">—</div></div>
+      <div class="stat-card"><div class="s-label">Verified</div><div class="s-val green" id="sVerified">—</div></div>
+      <div class="stat-card"><div class="s-label">Frozen</div><div class="s-val red" id="sFrozen">—</div></div>
+      <div class="stat-card"><div class="s-label">Total Balance</div><div class="s-val blue" id="sTotalBal">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>All Accounts</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="search-box">
+            <span style="color:var(--muted)">🔍</span>
+            <input id="searchInput" type="text" placeholder="Search name or phone...">
+          </div>
+          <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Balance</th>
+              <th>Verified</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Last IP</th>
+              <th>Device</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ WITHDRAWALS TAB ══ -->
+  <div id="tab-withdrawals" class="page hidden">
+    <div class="page-title">Withdrawal Requests</div>
+    <div class="page-sub">Review and process user withdrawal requests</div>
+
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="s-label">Total Requests</div><div class="s-val gold" id="wdTotal">—</div></div>
+      <div class="stat-card"><div class="s-label">Pending</div><div class="s-val" style="color:var(--gold2)" id="wdPending">—</div></div>
+      <div class="stat-card"><div class="s-label">Total Amount</div><div class="s-val green" id="wdAmount">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>All Withdrawals</h2>
+        <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadWithdrawals()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Bank</th>
+              <th>Account</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wdBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ NOTIFICATIONS TAB ══ -->
+  <div id="tab-notifications" class="page hidden">
+    <div class="page-title">Send Notifications</div>
+    <div class="page-sub">Broadcast messages to users</div>
+
+    <div class="card" style="max-width:540px">
+      <div class="card-head"><h2>Send Notification</h2></div>
+      <div style="padding:20px">
+        <form id="notifForm">
+          <div class="group">
+            <label>Target User</label>
+            <select id="notifUser" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text)">
+              <option value="all">📢 All Users</option>
+            </select>
+          </div>
+          <div class="group">
+            <label>Title</label>
+            <input id="notifTitle" type="text" placeholder="Notification title" required>
+          </div>
+          <div class="group">
+            <label>Message</label>
+            <textarea id="notifMsg" style="width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);resize:vertical;min-height:90px;font:inherit" placeholder="Enter your message here..." required></textarea>
+          </div>
+          <div id="notifErr" class="form-err"></div>
+          <button class="btn-gold" type="submit">Send Notification</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TASKS TAB ══ -->
+  <div id="tab-tasks" class="page hidden">
+    <div class="page-title">Earn Tasks</div>
+    <div class="page-sub">Create tasks, review user submissions and credit rewards</div>
+
+    <div class="card" style="max-width:540px">
+      <div class="card-head"><h2>➕ Create Task</h2></div>
+      <div style="padding:20px">
+        <form id="taskForm">
+          <div class="group">
+            <label>Task Title</label>
+            <input id="taskTitle" type="text" placeholder="e.g. Like our Facebook page" required>
+          </div>
+          <div class="group">
+            <label>Description</label>
+            <textarea id="taskDesc" style="width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);resize:vertical;min-height:70px;font:inherit" placeholder="What the user needs to do..."></textarea>
+          </div>
+          <div class="group">
+            <label>Reward (₱)</label>
+            <input id="taskReward" type="number" min="1" step="0.01" placeholder="5.00" required>
+          </div>
+          <div id="taskErr" class="form-err"></div>
+          <button class="btn-gold" type="submit">Create Task</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>All Tasks</h2>
+        <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadAdminTasks()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Reward</th>
+              <th>Submissions</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="taskBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>User Submissions</h2>
+        <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadAdminCompletions()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Task</th>
+              <th>Proof</th>
+              <th>Reward</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="taskCompBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ USER DETAIL MODAL ══ -->
+<div id="detailModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="detailName">User Details</h3>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ══ ADD CASH MODAL ══ -->
+<div id="cashModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>💰 Add Cash</h3>
+      <button class="modal-close" onclick="closeModal('cashModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="cashUserInfo" style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:18px">
+        <div style="font-size:13px;color:var(--muted)">Adding cash to:</div>
+        <div style="font-size:16px;font-weight:800;color:var(--gold2);margin-top:4px" id="cashUserName">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px" id="cashUserPhone">—</div>
+        <div style="margin-top:8px;font-size:13px">Current Balance: <strong style="color:var(--green3)" id="cashCurBal">—</strong></div>
+      </div>
+
+      <form class="cash-form" id="cashForm">
+        <div class="group">
+          <label>Amount to Add</label>
+          <div class="amount-row">
+            <span class="peso">₱</span>
+            <input id="cashAmount" type="number" min="1" step="0.01" placeholder="0.00" required>
+          </div>
+        </div>
+        <div class="group">
+          <label>Note / Reason <span style="color:var(--muted2);font-size:10px">(optional)</span></label>
+          <textarea id="cashNote" placeholder="e.g. Bonus, Commission, Top-up..."></textarea>
+        </div>
+        <div id="cashErr" class="form-err"></div>
+        <button class="btn-gold" type="submit" id="cashBtn">Add Cash to Account</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM MODAL ══ -->
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmText" style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px"></p>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeModal('confirmModal')" style="flex:1;padding:13px;border-radius:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-weight:700">Cancel</button>
+        <button id="confirmOkBtn" style="flex:1;padding:13px;border-radius:10px;background:var(--red2);border:none;color:#fff;font-weight:700">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════ UTILS ═══════════ */
+const $ = id => document.getElementById(id);
+let allUsers = [];
+let cashTargetUser = null;
+let confirmCallback = null;
+
+function toast(msg, type='') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 2800);
+}
+
+async function api(url, opts={}) {
+  const r = await fetch(url, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) },
+    ...opts
+  });
+  let d = {};
+  try { d = await r.json(); } catch {}
+  if (!r.ok) throw new Error(d.message || 'Request failed');
+  return d;
+}
+
+function money(v) {
+  return '₱' + Number(v||0).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleString('en-PH', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function closeModal(id) { $(id).classList.add('hidden'); }
+
+function confirm(title, text, cb) {
+  $('confirmTitle').textContent = title;
+  $('confirmText').textContent = text;
+  confirmCallback = cb;
+  $('confirmModal').classList.remove('hidden');
+}
+
+$('confirmOkBtn').onclick = () => {
+  closeModal('confirmModal');
+  if (confirmCallback) confirmCallback();
+};
+
+['detailModal','cashModal','confirmModal'].forEach(id => {
+  $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); });
+});
+
+/* ═══════════ LOGIN ═══════════ */
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  $('loginErr').textContent = '';
+  const btn = $('loginBtn');
+  btn.textContent = 'Logging in...'; btn.disabled = true;
+  try {
+    await api('/api/admin/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: $('adminUser').value.trim(), password: $('adminPass').value })
+    });
+    $('loginScreen').classList.add('hidden');
+    $('adminShell').classList.remove('hidden');
+    await loadUsers();
+    await populateNotifUsers();
+  } catch(err) {
+    $('loginErr').textContent = err.message;
+    btn.textContent = 'Login to Admin Panel'; btn.disabled = false;
+  }
+};
+
+/* ═══════════ LOGOUT ═══════════ */
+$('logoutBtn').onclick = () => {
+  confirm('Logout', 'Are you sure you want to logout from the admin panel?', async () => {
+    try { await api('/api/admin/logout', { method:'POST' }); } catch {}
+    $('adminShell').classList.add('hidden');
+    $('loginScreen').classList.remove('hidden');
+    $('adminUser').value = '';
+    $('adminPass').value = '';
+  });
+};
+
+/* ═══════════ TABS ═══════════ */
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    ['users','withdrawals','tasks','notifications'].forEach(t => {
+      $(`tab-${t}`).classList.toggle('hidden', t !== tab);
+    });
+    if (tab === 'withdrawals') loadWithdrawals();
+    if (tab === 'tasks') { loadAdminTasks(); loadAdminCompletions(); }
+  };
+});
+
+/* ═══════════ USERS ═══════════ */
+async function loadUsers() {
+  $('usersBody').innerHTML = '<tr><td colspan="10"><div class="empty">Loading users…</div></td></tr>';
+  try {
+    const d = await api('/api/admin/users');
+    allUsers = d.users || [];
+    renderUsers(allUsers);
+    updateStats(allUsers);
+    toast('Users loaded', 'ok');
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+}
+
+function updateStats(users) {
+  $('sTotal').textContent = users.length;
+  $('sVerified').textContent = users.filter(u => u.verified).length;
+  $('sFrozen').textContent = users.filter(u => u.status === 'frozen').length;
+  const total = users.reduce((s, u) => s + (Number(u.balance) || 0), 0);
+  $('sTotalBal').textContent = money(total);
+}
+
+function renderUsers(users) {
+  const body = $('usersBody');
+  if (!users.length) {
+    body.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="empty-icon">👤</div>No users found.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = users.map(u => {
+    // Shorten device string to browser + OS only
+    const rawDevice = u.last_device || '';
+    const shortDevice = parseDevice(rawDevice);
+    return `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">#${u.id}</td>
+      <td><strong>${esc(u.name)}</strong></td>
+      <td style="color:var(--muted)">${esc(u.phone)}</td>
+      <td><strong style="color:var(--green3)">${money(u.balance)}</strong></td>
+      <td>${u.verified ? '<span class="pill verified">✓ Yes</span>' : '<span class="pill no">No</span>'}</td>
+      <td><span class="pill ${u.status==='frozen'?'frozen':'active'}">${esc(u.status||'active')}</span></td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(u.last_login)}</td>
+      <td>
+        ${u.last_ip
+          ? `<span style="font-family:monospace;font-size:12px;background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.2);padding:3px 8px;border-radius:6px;color:var(--gold2)">${esc(u.last_ip)}</span>`
+          : '<span style="color:var(--muted2);font-size:12px">—</span>'}
+      </td>
+      <td style="max-width:160px">
+        ${shortDevice
+          ? `<span style="font-size:11px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(rawDevice)}">${esc(shortDevice)}</span>`
+          : '<span style="color:var(--muted2);font-size:12px">—</span>'}
+      </td>
+      <td>
+        <div class="acts">
+          <button class="act-btn act-cash" onclick="openCash(${u.id})">💰 Add Cash</button>
+          <button class="act-btn act-details" onclick="viewUser(${u.id})">Details</button>
+          ${u.status === 'frozen'
+            ? `<button class="act-btn act-unfreeze" onclick="toggleFreeze(${u.id},'frozen')">Unfreeze</button>`
+            : `<button class="act-btn act-freeze" onclick="toggleFreeze(${u.id},'active')">Freeze</button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* Parse UA string into short label */
+function parseDevice(ua) {
+  if (!ua) return '';
+  let browser = 'Unknown Browser';
+  let os = 'Unknown OS';
+  if (/Chrome\/(\d+)/.test(ua) && !/Chromium|Edge|OPR/.test(ua)) browser = 'Chrome';
+  else if (/Firefox\/(\d+)/.test(ua)) browser = 'Firefox';
+  else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+  else if (/Edge\/|Edg\//.test(ua)) browser = 'Edge';
+  else if (/OPR\/|Opera\//.test(ua)) browser = 'Opera';
+  else if (/MSIE|Trident/.test(ua)) browser = 'IE';
+  if (/Windows NT 10/.test(ua)) os = 'Windows 10/11';
+  else if (/Windows NT 6\.1/.test(ua)) os = 'Windows 7';
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/Android/.test(ua)) { const m = ua.match(/Android ([\d.]+)/); os = 'Android' + (m ? ' ' + m[1] : ''); }
+  else if (/iPhone|iPad/.test(ua)) os = /iPhone/.test(ua) ? 'iPhone' : 'iPad';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/Linux/.test(ua)) os = 'Linux';
+  return `${browser} · ${os}`;
+}
+
+/* Search */
+$('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  if (!q) return renderUsers(allUsers);
+  renderUsers(allUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.phone||'').toLowerCase().includes(q)
+  ));
+});
+
+/* ═══════════ VIEW USER ═══════════ */
+async function viewUser(id) {
+  try {
+    const d = await api('/api/admin/users/' + id);
+    const u = d.user;
+    $('detailName').textContent = u.name;
+    $('detailBody').innerHTML = `
+      <div class="detail-row"><span class="d-label">Phone</span><span class="d-val">${esc(u.phone)}</span></div>
+      <div class="detail-row"><span class="d-label">Balance</span><span class="d-val" style="color:var(--green3)">${money(u.balance)}</span></div>
+      <div class="detail-row"><span class="d-label">Status</span><span class="d-val"><span class="pill ${u.status==='frozen'?'frozen':'active'}">${esc(u.status||'active')}</span></span></div>
+      <div class="detail-row"><span class="d-label">Verified</span><span class="d-val">${u.verified ? '<span class="pill verified">Yes</span>' : '<span class="pill no">No</span>'}</span></div>
+      <div class="detail-row"><span class="d-label">Invitation Code</span><span class="d-val" style="color:var(--gold2)">${esc(u.invitation_code||'—')}</span></div>
+      <div class="detail-row"><span class="d-label">Total Referrals</span><span class="d-val">${u.total_referrals||0}</span></div>
+      <div class="detail-row"><span class="d-label">Registered</span><span class="d-val">${fmtDate(u.created_at)}</span></div>
+      <div class="detail-row"><span class="d-label">Last Login</span><span class="d-val">${fmtDate(u.last_login)}</span></div>
+
+      <!-- ── IP & Device block ── -->
+      <div style="margin-top:16px;background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.15);border-radius:10px;padding:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🌐 Last Login Info</div>
+        <div class="detail-row" style="padding:8px 0">
+          <span class="d-label">IP Address</span>
+          <span class="d-val">
+            ${u.last_ip
+              ? `<span style="font-family:monospace;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);padding:3px 10px;border-radius:6px;color:var(--gold2);font-size:13px">${esc(u.last_ip)}</span>`
+              : '<span style="color:var(--muted2)">No login recorded</span>'}
+          </span>
+        </div>
+        <div style="padding-top:10px">
+          <span class="d-label" style="display:block;margin-bottom:6px">Login Device / Browser</span>
+          ${u.last_device
+            ? `<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px">
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">${esc(parseDevice(u.last_device))}</div>
+                <div style="font-size:11px;color:var(--muted);word-break:break-all;line-height:1.5">${esc(u.last_device)}</div>
+               </div>`
+            : '<span style="color:var(--muted2);font-size:13px">No device recorded</span>'}
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div style="font-size:12px;font-weight:700;color:var(--gold3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Login History</div>
+        ${(d.loginHistory||[]).length ? `
+          <div style="overflow-x:auto">
+            <table class="sub-table">
+              <tr><th>Date</th><th>Result</th><th>IP Address</th><th>Device</th></tr>
+              ${(d.loginHistory||[]).map(x => `
+                <tr>
+                  <td style="color:var(--muted);white-space:nowrap">${fmtDate(x.created_at)}</td>
+                  <td><span class="pill ${x.success?'active':'frozen'}">${x.success?'✓ Success':'✗ Failed'}</span></td>
+                  <td>
+                    ${x.ip_address
+                      ? `<span style="font-family:monospace;font-size:11px;color:var(--gold2)">${esc(x.ip_address)}</span>`
+                      : '<span style="color:var(--muted2)">—</span>'}
+                  </td>
+                  <td style="max-width:180px">
+                    <span style="font-size:11px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(x.user_agent||'')}">
+                      ${x.user_agent ? esc(parseDevice(x.user_agent)) : '—'}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        ` : '<div class="empty" style="padding:16px">No login history</div>'}
+      </div>
+    `;
+    $('detailModal').classList.remove('hidden');
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+}
+
+/* ═══════════ FREEZE / UNFREEZE ═══════════ */
+function toggleFreeze(id, currentStatus) {
+  const action = currentStatus === 'frozen' ? 'unfreeze' : 'freeze';
+  const user = allUsers.find(u => u.id == id);
+  const name = user ? user.name : `User #${id}`;
+  confirm(
+    action === 'freeze' ? 'Freeze Account' : 'Unfreeze Account',
+    `Are you sure you want to ${action} the account of ${name}?`,
+    async () => {
+      try {
+        await api(`/api/admin/users/${id}/${action}`, { method: 'POST' });
+        toast(`Account ${action}d successfully`, 'ok');
+        await loadUsers();
+      } catch(err) {
+        toast(err.message, 'err');
+      }
+    }
+  );
+}
+
+/* ═══════════ ADD CASH ═══════════ */
+function openCash(id) {
+  const user = allUsers.find(u => u.id == id);
+  if (!user) return;
+  cashTargetUser = user;
+  $('cashUserName').textContent = user.name;
+  $('cashUserPhone').textContent = user.phone;
+  $('cashCurBal').textContent = money(user.balance);
+  $('cashAmount').value = '';
+  $('cashNote').value = '';
+  $('cashErr').textContent = '';
+  $('cashBtn').textContent = 'Add Cash to Account';
+  $('cashBtn').disabled = false;
+  $('cashModal').classList.remove('hidden');
+}
+
+$('cashForm').onsubmit = async e => {
+  e.preventDefault();
+  $('cashErr').textContent = '';
+  if (!cashTargetUser) return;
+  const amount = parseFloat($('cashAmount').value);
+  if (!amount || amount <= 0) { $('cashErr').textContent = 'Enter a valid amount.'; return; }
+  const note = $('cashNote').value.trim();
+  $('cashBtn').textContent = 'Processing...'; $('cashBtn').disabled = true;
+  try {
+    const d = await api(`/api/admin/users/${cashTargetUser.id}/add-cash`, {
+      method: 'POST',
+      body: JSON.stringify({ amount, note })
+    });
+    toast(`₱${amount.toLocaleString()} added to ${cashTargetUser.name}`, 'ok');
+    closeModal('cashModal');
+    await loadUsers();
+  } catch(err) {
+    $('cashErr').textContent = err.message;
+    $('cashBtn').textContent = 'Add Cash to Account'; $('cashBtn').disabled = false;
+  }
+};
+
+/* ═══════════ WITHDRAWALS ═══════════ */
+async function loadWithdrawals() {
+  $('wdBody').innerHTML = '<tr><td colspan="8"><div class="empty">Loading withdrawals…</div></td></tr>';
+  try {
+    const d = await api('/api/admin/withdrawals');
+    const list = d.withdrawals || [];
+    $('wdTotal').textContent = list.length;
+    $('wdPending').textContent = list.filter(w => w.status === 'Pending').length;
+    const total = list.reduce((s, w) => s + (Number(w.amount)||0), 0);
+    $('wdAmount').textContent = money(total);
+    renderWithdrawals(list);
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+}
+
+function renderWithdrawals(list) {
+  const body = $('wdBody');
+  if (!list.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">💸</div>No withdrawal requests.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(w => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">#${w.id}</td>
+      <td><strong>${esc(w.user_name||'—')}</strong></td>
+      <td>${esc(w.bank_name)}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(w.account_name)}<br>${esc(w.account_number)}</td>
+      <td><strong style="color:var(--red3)">-${money(w.amount)}</strong></td>
+      <td><span class="pill ${(w.status||'').toLowerCase()}">${esc(w.status)}</span></td>
+      <td style="color:var(--muted);font-size:12px">${fmtDate(w.created_at)}</td>
+      <td>
+        <div class="acts">
+          ${w.status === 'Pending' ? `
+            <button class="act-btn act-unfreeze" onclick="updateWithdrawal(${w.id},'Approved')">Approve</button>
+            <button class="act-btn act-freeze" onclick="updateWithdrawal(${w.id},'Rejected')">Reject</button>
+          ` : `<span style="color:var(--muted);font-size:12px">${esc(w.status)}</span>`}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function updateWithdrawal(id, status) {
+  const label = status === 'Approved' ? 'approve' : 'reject';
+  confirm(
+    `${status} Withdrawal`,
+    `Are you sure you want to ${label} withdrawal #${id}?`,
+    async () => {
+      try {
+        await api(`/api/admin/withdrawals/${id}/${status === 'Approved' ? 'approve' : 'reject'}`, { method:'POST' });
+        toast(`Withdrawal ${status.toLowerCase()}`, 'ok');
+        await loadWithdrawals();
+      } catch(err) {
+        toast(err.message, 'err');
+      }
+    }
+  );
+}
+
+/* ═══════════ NOTIFICATIONS ═══════════ */
+async function populateNotifUsers() {
+  try {
+    const d = await api('/api/admin/users');
+    const sel = $('notifUser');
+    const existing = sel.innerHTML;
+    sel.innerHTML = '<option value="all">📢 All Users</option>' +
+      (d.users||[]).map(u => `<option value="${u.id}">${esc(u.name)} (${esc(u.phone)})</option>`).join('');
+  } catch {}
+}
+
+$('notifForm').onsubmit = async e => {
+  e.preventDefault();
+  $('notifErr').textContent = '';
+  const userId = $('notifUser').value;
+  const title = $('notifTitle').value.trim();
+  const message = $('notifMsg').value.trim();
+  try {
+    const btn = e.target.querySelector('.btn-gold');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    await api('/api/admin/notify', {
+      method: 'POST',
+      body: JSON.stringify({ userId, title, message })
+    });
+    toast('Notification sent!', 'ok');
+    $('notifTitle').value = '';
+    $('notifMsg').value = '';
+    btn.textContent = 'Send Notification'; btn.disabled = false;
+  } catch(err) {
+    $('notifErr').textContent = err.message;
+    const btn = e.target.querySelector('.btn-gold');
+    btn.textContent = 'Send Notification'; btn.disabled = false;
+  }
+};
+
+/* ═══════════ TASKS ═══════════ */
+async function loadAdminTasks() {
+  try {
+    const d = await api('/api/admin/tasks');
+    renderAdminTasks(d.tasks || []);
+  } catch(err) { toast(err.message, 'err'); }
+}
+
+function renderAdminTasks(tasks) {
+  const body = $('taskBody');
+  if (!tasks.length) {
+    body.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">💼</div>No tasks yet. Create one above!</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = tasks.map(t => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">#${t.id}</td>
+      <td><strong>${esc(t.title)}</strong><div style="color:var(--muted);font-size:12px">${esc(t.description || '')}</div></td>
+      <td><strong style="color:var(--green3)">${money(t.reward)}</strong></td>
+      <td style="color:var(--muted)">${t.submissions || 0} <span style="color:var(--gold2)">(${t.pending_submissions || 0} pending)</span></td>
+      <td><span class="pill ${t.status === 'active' ? 'active' : 'frozen'}">${esc(t.status)}</span></td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(t.created_at)}</td>
+      <td>
+        <div class="acts">
+          ${t.status === 'active'
+            ? `<button class="act-btn act-freeze" onclick="toggleTaskStatus(${t.id},'inactive')">Deactivate</button>`
+            : `<button class="act-btn act-unfreeze" onclick="toggleTaskStatus(${t.id},'active')">Activate</button>`}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function toggleTaskStatus(id, status) {
+  try {
+    const d = await api(`/api/admin/tasks/${id}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status })
+    });
+    toast(d.message, 'ok');
+    loadAdminTasks();
+  } catch(err) { toast(err.message, 'err'); }
+}
+
+async function loadAdminCompletions() {
+  try {
+    const d = await api('/api/admin/task-completions');
+    renderAdminCompletions(d.completions || []);
+  } catch(err) { toast(err.message, 'err'); }
+}
+
+function renderAdminCompletions(list) {
+  const body = $('taskCompBody');
+  if (!list.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">📨</div>No submissions yet.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(c => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">#${c.id}</td>
+      <td><strong>${esc(c.user_name)}</strong><div style="color:var(--muted);font-size:12px">${esc(c.user_email || '')}</div></td>
+      <td>${esc(c.task_title)}</td>
+      <td style="max-width:200px;color:var(--muted);font-size:12px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.proof || '')}">${esc(c.proof || '—')}</div></td>
+      <td><strong style="color:var(--green3)">${money(c.task_reward)}</strong></td>
+      <td><span class="pill ${(c.status||'').toLowerCase()}">${esc(c.status)}</span></td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(c.created_at)}</td>
+      <td>
+        <div class="acts">
+          ${c.status === 'Pending'
+            ? `<button class="act-btn act-cash" onclick="reviewCompletion(${c.id},'Approved')">✓ Approve</button>
+               <button class="act-btn act-freeze" onclick="reviewCompletion(${c.id},'Rejected')">✗ Reject</button>`
+            : '<span style="color:var(--muted2);font-size:12px">—</span>'}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function reviewCompletion(id, status) {
+  const label = status === 'Approved' ? 'approve' : 'reject';
+  if (status === 'Rejected' && !confirm(`Review this submission as ${status}? Reward will be credited if approved.`)) return;
+  try {
+    const d = await api(`/api/admin/task-completions/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ status })
+    });
+    toast(d.message, 'ok');
+    await loadAdminCompletions();
+  } catch(err) { toast(err.message, 'err'); }
+}
+
+$('taskForm').onsubmit = async e => {
+  e.preventDefault();
+  $('taskErr').textContent = '';
+  const btn = e.target.querySelector('.btn-gold');
+  btn.textContent = 'Creating...'; btn.disabled = true;
+  try {
+    await api('/api/admin/tasks', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: $('taskTitle').value.trim(),
+        description: $('taskDesc').value.trim(),
+        reward: $('taskReward').value
+      })
+    });
+    toast('Task created!', 'ok');
+    $('taskTitle').value = '';
+    $('taskDesc').value = '';
+    $('taskReward').value = '';
+    loadAdminTasks();
+  } catch(err) {
+    $('taskErr').textContent = err.message;
+  }
+  btn.textContent = 'Create Task'; btn.disabled = false;
+};
+
+/* ═══════════ AUTO-LOGIN CHECK ═══════════ */
+(async () => {
+  try {
+    const d = await api('/api/admin/me');
+    if (d.loggedIn) {
+      $('loginScreen').classList.add('hidden');
+      $('adminShell').classList.remove('hidden');
+      await loadUsers();
+      await populateNotifUsers();
+    }
+  } catch {}
+})();
+</script>
+</body>
+</html>

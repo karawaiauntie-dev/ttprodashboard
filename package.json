@@ -1,0 +1,25 @@
+{
+  "name": "ttpro-otp",
+  "version": "1.0.0",
+  "description": "TTPRO Dashboard",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "npm rebuild better-sqlite3"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "nodemailer": "^9.0.6"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

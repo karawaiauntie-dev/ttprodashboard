@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TTPRO — Account Portal</title>
+<style>
+/* ═══════════════════════════════════════
+   ROOT / CASINO THEME
+═══════════════════════════════════════ */
+:root {
+  --bg:       #091712;
+  --bg2:      #11281f;
+  --surface:  #153327;
+  --surface2: #1d4437;
+  --surface3: #295e4a;
+  --border:   #2b6653;
+  --border2:  #3b7d69;
+  --gold:     #f4c95b;
+  --gold2:    #ffe29d;
+  --gold3:    #d79c2f;
+  --gold-dim: rgba(244,201,91,.15);
+  --gold-glow:rgba(244,201,91,.28);
+  --red:      #a51d2d;
+  --red2:     #c73841;
+  --red3:     #e75660;
+  --red4:     #ffc3c9;
+  --green:    #0e5a3f;
+  --green2:   #2ea56e;
+  --green3:   #8ae0b1;
+  --text:     #fffaf3;
+  --muted:    #d8e9dc;
+  --muted2:   #b2c9bc;
+  --radius:   14px;
+  --radius-sm:10px;
+  --shadow:   0 24px 80px rgba(22,13,8,.2);
+  --shadow-sm:0 4px 24px rgba(22,13,8,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #091712;
+  background-image:
+    radial-gradient(ellipse at 15% 15%, rgba(197,57,72,.22), transparent 28%),
+    radial-gradient(ellipse at 80% 10%, rgba(34,124,87,.2), transparent 32%),
+    linear-gradient(180deg, #071812 0%, #0d1f1a 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Christmas glow overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(199,58,73,.18) 0%, transparent 42%),
+    radial-gradient(ellipse at 85% 25%, rgba(71,159,110,.18) 0%, transparent 42%),
+    radial-gradient(ellipse at 50% 65%, rgba(245,199,91,.09) 0%, transparent 45%);
+}
+@keyframes purpleBlink {
+  0%, 100% { opacity: .25; }
+  50%      { opacity: .65; }
+}
+
+button, input, select, textarea { font: inherit; outline: none; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(255,217,120,.75); outline-offset: 2px; }
+.hidden { display: none !important; }
+
+/* Christmas theme overrides */
+:root {
+  --bg: #061b16; --bg2: #0b2a22; --surface: #10382d; --surface2: #144638;
+  --surface3: #1b5544; --border: #28624f; --border2: #3d8066;
+  --gold: #e8b84b; --gold2: #ffd978; --gold3: #b7862c;
+  --red: #8f1d2c; --red2: #b52d3c; --red3: #df5360; --red4: #ffb0b5;
+  --green: #0f5132; --green2: #2f9e68; --green3: #7ee2ab;
+}
+body { background:#07131f; color:#f4f7fb; background-image:none; }
+body::after { background:radial-gradient(ellipse at 15% 8%,rgba(185,35,57,.12),transparent 35%),radial-gradient(ellipse at 85% 18%,rgba(30,130,89,.12),transparent 38%); animation:none; }
+.page-video-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .35s ease, visibility .35s ease;
+  background-image:
+    linear-gradient(180deg, rgba(12, 18, 38, 0.10), rgba(7, 13, 18, 0.22)),
+    url('/s1.png');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  filter: none;
+  transform: none;
+}
+.page-video-bg.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.page-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .35s ease, visibility .35s ease;
+  background: linear-gradient(180deg, rgba(7,16,22,.08) 0%, rgba(8,18,25,.34) 100%);
+}
+.page-video-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { position:relative; z-index:2; }
+.snow-layer { z-index:3; }
+@keyframes christmasSnow {
+  0% { transform: translate3d(0, -12%, 0); }
+  100% { transform: translate3d(8%, 18%, 0); }
+}
+@media(max-width:599px){
+  .page-video-bg{inset:0;width:100%;height:100%;background-position:center center}
+}
+@media(prefers-reduced-motion:reduce){.page-video-bg{display:none}}
+.snow-layer { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; opacity:.8; background-image:radial-gradient(circle,rgba(255,255,255,.95) 0 2px,transparent 2.5px),radial-gradient(circle,rgba(194,222,235,.8) 0 1.5px,transparent 2px); background-size:46px 46px,72px 72px; animation:snowFall 14s linear infinite; }
+.snow-layer::before,.snow-layer::after { content:''; position:absolute; inset:-100% 0 0; background-image:inherit; background-size:63px 63px,91px 91px; animation:snowFall 20s linear infinite; }
+.snow-layer::after { opacity:.55; transform:translateX(18px); animation-duration:27s; }
+@keyframes snowFall { from{transform:translate3d(0,-35%,0)} to{transform:translate3d(12%,35%,0)} }
+.card, .stat-box, .platform-card, .settlement-summary-card { background: linear-gradient(145deg, rgba(20,70,56,.98), rgba(9,42,33,.98)); border-color: var(--border); }
+.topbar, .bottom-nav { background: rgba(6,27,22,.96); border-color: var(--border2); }
+.topbar-logo, .brand-logo { background: linear-gradient(135deg,#ffdf82,#c9952f 55%,#df5360); -webkit-background-clip: text; }
+.balance-card, .wbal-card { background: radial-gradient(ellipse at 12% 80%, rgba(223,83,96,.2), transparent 52%), linear-gradient(135deg,#8f1d2c,#0c382c 70%); border-color: rgba(255,217,120,.5); }
+.tx-item, .notif-item, .wd-row { border-color: rgba(61,128,102,.55); }
+.tx-title, .notif-title, .wd-bank { color: #fff3d0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } .snow-layer { display:none; } }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 9px; }
+
+/* ═══ TOAST ═══ */
+#toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--surface2); border: 1px solid var(--gold3);
+  color: var(--gold2); padding: 10px 22px; border-radius: 50px;
+  font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none;
+  transition: .25s; z-index: 999; white-space: nowrap;
+  box-shadow: 0 4px 30px rgba(0,0,0,.6);
+}
+#toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.ok    { border-color: var(--green2); color: var(--green3); }
+#toast.err   { border-color: var(--red3);   color: var(--red4);   }
+
+/* ═══════════════════════════════════════
+   AUTH SCREENS
+═══════════════════════════════════════ */
+.auth-screen {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 30% 0%,  #182b42 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 100%, #211b36 0%, transparent 55%),
+    var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  position: relative; overflow: hidden;
+}
+
+/* decorative corner chips */
+.auth-screen::before, .auth-screen::after {
+  content: '♠'; position: absolute;
+  font-size: 160px; opacity: .04; user-select: none; pointer-events: none;
+}
+.auth-screen::before { top: -20px; left: -20px; }
+.auth-screen::after  { bottom: -20px; right: -20px; transform: rotate(180deg); }
+
+.auth-card {
+  width: 100%; max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 22px;
+  padding: 34px 30px;
+  box-shadow: var(--shadow);
+  animation: fadeUp .35s ease;
+  position: relative; z-index: 1;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Brand */
+.brand-wrap { text-align: center; margin-bottom: 6px; }
+.brand-logo {
+  font-size: 46px; font-weight: 900; letter-spacing: 5px;
+  background: linear-gradient(135deg, #f9d77b 12%, #d64a58 42%, #2ea56e 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  display: block;
+  text-shadow: none;
+}
+.brand-suits {
+  font-size: 18px; letter-spacing: 10px; opacity: .5;
+  margin-top: 2px; display: block; color: var(--gold3);
+}
+.brand-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold3), transparent);
+  margin: 16px 0 20px;
+}
+.brand-tagline {
+  text-align: center; font-size: 11px; letter-spacing: 3px;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 22px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex; background: var(--bg2);
+  border-radius: 11px; padding: 4px; margin-bottom: 22px; gap: 4px;
+}
+.tab-btn {
+  flex: 1; border: none; border-radius: 8px; padding: 11px;
+  background: transparent; color: var(--muted); font-weight: 700;
+  font-size: 13px; transition: .2s; letter-spacing: .3px;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, #c73841, #2ea56e);
+  color: #fffaf3; box-shadow: 0 4px 16px rgba(199,56,65,.28);
+}
+
+/* Form */
+.group { margin-bottom: 14px; }
+.group label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: #f4c95b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px;
+}
+.group input, .group select {
+  width: 100%; padding: 13px 14px; border-radius: 10px;
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--text); transition: border .2s, box-shadow .2s;
+}
+.group input:focus, .group select:focus {
+  border-color: #d79c2f;
+  box-shadow: 0 0 0 3px rgba(244,201,91,.14);
+}
+.group select option { background: var(--surface2); }
+.phone-row { display: flex; gap: 8px; }
+.phone-row .dial { width: 90px; flex-shrink: 0; }
+
+.form-err { color: var(--red4); font-size: 12px; min-height: 16px; margin: 7px 0 2px; text-align: center; }
+
+.btn-primary {
+  width: 100%; padding: 14px; border: none; border-radius: 11px;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #60a5fa 100%);
+  color: #fff; font-weight: 900; font-size: 15px;
+  letter-spacing: .5px; margin-top: 4px;
+  box-shadow: 0 6px 22px rgba(37,99,235,.35);
+  transition: .2s;
+}
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.btn-gold {
+  width: 100%; padding: 14px; border: none; border-radius: 11px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24, #d97706);
+  color: #fff; font-weight: 900; font-size: 15px;
+  box-shadow: 0 6px 22px rgba(245,158,11,.4);
+  transition: .2s;
+}
+.btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-gold:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* OTP */
+.otp-input {
+  width: 100%; text-align: center; letter-spacing: 14px; font-size: 28px;
+  font-weight: 900; padding: 16px; border-radius: 12px;
+  border: 1px solid var(--border2); background: var(--bg2); color: var(--text);
+}
+.otp-input:focus { border-color: var(--gold3); box-shadow: 0 0 0 3px rgba(184,134,11,.14); }
+
+.demo-box {
+  background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+  border: 1px solid var(--gold3); border-radius: 12px;
+  padding: 14px; text-align: center; margin: 14px 0;
+}
+.demo-box .d-label { font-size: 10px; color: var(--gold3); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.demo-box .d-code  { font-size: 32px; font-weight: 900; color: var(--gold2); letter-spacing: 10px; }
+
+.link-btn { background: none; border: none; color: var(--gold3); font-size: 13px; display: block; margin: 14px auto 0; }
+.link-btn:hover { color: var(--gold2); }
+.verify-note { text-align: center; font-size: 13px; color: var(--muted); margin: 10px 0; }
+
+/* Optional field label */
+.opt-label { color: var(--muted); font-size: 10px; }
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+#appShell { display: flex; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
+
+/* ── Top Bar ── */
+.topbar {
+  height: 60px;
+  background: linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96) 100%);
+  backdrop-filter: blur(14px);
+  border-bottom: 2px solid rgba(69,162,255,.3);
+  box-shadow: 0 4px 16px rgba(37,99,235,.15);
+  display: flex; align-items: center; padding: 0 18px; gap: 12px;
+  position: sticky; top: 0; z-index: 20;
+}
+.topbar-logo {
+  font-size: 22px; font-weight: 900; letter-spacing: 2px; flex: 1;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.topbar-suits { font-size: 12px; color: var(--muted); letter-spacing: 3px; }
+.topbar-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  display: grid; place-items: center; font-size: 15px; font-weight: 900;
+  border: 1px solid #1d4ed8; cursor: pointer; flex-shrink: 0; color: #fff;
+}
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 72px;
+  background: linear-gradient(180deg, rgba(10,20,35,.98) 0%, rgba(8,18,32,1) 100%);
+  backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(69,162,255,.35);
+  box-shadow: 0 -8px 32px rgba(37,99,235,.2), inset 0 1px 0 rgba(255,255,255,.05);
+  display: flex; z-index: 20; padding: 8px 6px 12px;
+  gap: 2px;
+}
+.nav-btn {
+  flex: 1; border: none; background: none; color: var(--muted2);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; font-size: 9px; font-weight: 700;
+  letter-spacing: .4px; transition: all .3s cubic-bezier(0.23, 1, 0.320, 1);
+  padding: 8px 4px;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(37,99,235,.08);
+  opacity: 0;
+  transition: opacity .3s ease;
+  border-radius: 14px;
+  z-index: -1;
+}
+.nav-icon { 
+  font-size: 24px; 
+  line-height: 1; 
+  transition: all .3s cubic-bezier(0.23, 1, 0.320, 1);
+  transform-origin: center;
+}
+.nav-btn:hover {
+  color: #2563eb;
+}
+.nav-btn:hover::before {
+  opacity: 0.5;
+}
+.nav-btn:hover .nav-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+.nav-btn.active { 
+  color: #2563eb; 
+  background: linear-gradient(135deg, rgba(37,99,235,.15) 0%, rgba(37,99,235,.08) 100%);
+  box-shadow: 0 0 0 1px rgba(37,99,235,.25), inset 0 2px 8px rgba(37,99,235,.1);
+}
+.nav-btn.active::before {
+  opacity: 1;
+}
+.nav-btn.active .nav-icon { 
+  filter: drop-shadow(0 0 10px rgba(37,99,235,.8)); 
+  transform: scale(1.2);
+}
+
+/* ── Page Content ── */
+.page-wrap { flex: 1; padding: 16px 15px 80px; max-width: 600px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════ */
+
+/* Card */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+}
+.card + .card { margin-top: 12px; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 12px; font-weight: 700; color: var(--gold3);
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex; padding: 3px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+}
+.badge.pending   { background: rgba(240,192,64,.12); color: var(--gold2); }
+.badge.approved,
+.badge.completed { background: rgba(46,204,113,.12); color: var(--green3); }
+.badge.rejected  { background: rgba(231,76,60,.12);  color: var(--red4); }
+.badge.active    { background: rgba(46,204,113,.12); color: var(--green3); }
+.badge.frozen    { background: rgba(231,76,60,.12);  color: var(--red4); }
+
+/* ── Earn Tasks ── */
+.task-row {
+  display: flex; gap: 12px; padding: 14px 0;
+  border-bottom: 1px solid var(--border2);
+}
+.task-row:last-child { border-bottom: none; }
+.task-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,42%); align-items:center; gap:18px; }
+.task-submit-trigger { width:100%; min-height:44px; margin:0; padding:10px 16px !important; display:inline-flex; align-items:center; justify-content:center; }
+.task-title { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+.task-desc  { font-size: 12px; color: var(--muted); line-height: 1.45; margin-bottom: 4px; }
+.task-reward{ font-size: 12px; color: var(--muted); }
+.task-sub-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border2); align-items: center; }
+.task-sub-row:last-child { border-bottom: none; }
+.page-head { margin-bottom: 14px; }
+.page-head .page-title { font-size: 20px; font-weight: 800; }
+.page-head .page-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.modal-input, .modal-textarea {
+  width: 100%; padding: 12px 13px; border-radius: 10px;
+  border: 1px solid var(--border2); background: var(--bg2); color: var(--text);
+  font: inherit; box-sizing: border-box;
+}
+.modal-textarea { min-height: 90px; resize: vertical; }
+.modal-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+.modal-body { padding: 6px 0 14px; }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 28px 20px; color: var(--muted); font-size: 13px; }
+.empty-icon  { font-size: 32px; margin-bottom: 8px; opacity: .4; }
+
+/* ── Suit Divider ── */
+.suit-divider {
+  display: flex; align-items: center; gap: 10px; margin: 14px 0;
+  color: var(--muted2); font-size: 11px; letter-spacing: 4px;
+}
+.suit-divider::before, .suit-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), transparent);
+}
+
+
+/* ── Global Chat ── */
+.chat-card { display: flex; flex-direction: column; height: calc(100vh - 220px); min-height: 380px; }
+.chat-box { flex:1; overflow-y:auto; padding:16px 14px; display:flex; flex-direction:column; gap:12px; background:#071d2b; color:#172033; }
+.chat-msg { display:flex; gap:10px; align-items:flex-start; max-width:88%; }
+.chat-msg.mine { align-self: flex-end; flex-direction: row-reverse; }
+.chat-av {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff; font-weight: 900; font-size: 14px;
+  display: grid; place-items: center; overflow: hidden;
+}
+.chat-av img { width: 100%; height: 100%; object-fit: cover; }
+.chat-bubble { background:#fff; color:#172033; border:1px solid #cbd5e1; border-radius:14px 14px 14px 4px; padding:10px 13px; min-width:84px; box-shadow:0 5px 16px rgba(0,0,0,.14); overflow-wrap:anywhere; }
+.chat-msg.mine .chat-bubble { background:#2563eb; color:#fff; border-color:#7aa7ff; border-radius:14px 14px 4px 14px; }
+.chat-name { font-size:11px; font-weight:800; color:#1d4ed8; margin-bottom:3px; }
+.chat-msg.mine .chat-name { color: #dbe7ff; text-align: right; }
+.chat-text { color:inherit; font-size:13px; line-height:1.5; overflow-wrap:anywhere; word-break:break-word; }
+.chat-time { font-size:10px; color:#64748b; margin-top:5px; }
+.chat-msg.mine .chat-time { color:#dbeafe; text-align:right; }
+@media(max-width:520px){.chat-msg{max-width:94%}.chat-bubble{padding:9px 11px}.chat-text{font-size:13px}}
+.chat-form {
+  display: flex; gap: 8px; padding: 10px;
+  border-top: 1px solid var(--border);
+}
+.chat-form input {
+  flex: 1; padding: 12px 14px; border-radius: 24px;
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--text);
+}
+.chat-form input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.chat-send {
+  width: 46px; height: 46px; border-radius: 50%; border: none;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff; font-size: 18px; font-weight: 900;
+  cursor: pointer; transition: .2s; flex-shrink: 0;
+}
+.chat-send:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* ── Avatar ── */
+.avatar-img {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: inherit; display: block;
+}
+.avatar-upload {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 10px 16px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: .2s;
+}
+.avatar-upload:hover { filter: brightness(1.1); }
+
+/* ── Settlement dashboard ── */
+.settlement-hero {
+  min-height: 180px; border-radius: 18px; padding: 22px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  color: #fff; overflow: hidden; position: relative;
+  background:
+    linear-gradient(90deg, rgba(8,14,25,.96) 0%, rgba(8,14,25,.72) 55%, rgba(8,14,25,.28) 100%),
+    radial-gradient(circle at 78% 35%, rgba(240,192,64,.42), transparent 28%),
+    linear-gradient(135deg, #0b1424, #17283c 52%, #7b5420);
+  border: 1px solid rgba(240,192,64,.45);
+  box-shadow: 0 18px 40px rgba(4,10,20,.25);
+}
+.settlement-hero::after { content:'$'; position:absolute; right:7%; top:-25px; font-size:150px; color:rgba(240,192,64,.12); font-weight:900; }
+.settlement-hero-copy { position:relative; z-index:1; max-width:520px; }
+.settlement-kicker { color:#f4c95d; font-size:10px; letter-spacing:2px; font-weight:800; margin-bottom:8px; }
+.settlement-hero h1 { font-size:clamp(22px,4vw,36px); line-height:1.1; margin-bottom:9px; max-width:560px; }
+.settlement-hero p { color:#cbd5e1; font-size:13px; max-width:480px; margin-bottom:13px; }
+.settlement-amount-label { color:#aebed0; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; }
+.settlement-amount { color:#fff; font-size:30px; line-height:1; font-weight:900; margin-top:4px; }
+.settlement-hero-avatar { position:relative; z-index:1; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; flex-shrink:0; background:linear-gradient(135deg,#f0c040,#fff1a8); color:#111827; border:3px solid rgba(255,255,255,.8); overflow:hidden; font-weight:900; font-size:26px; box-shadow:0 0 0 5px rgba(240,192,64,.14),0 8px 24px rgba(0,0,0,.3); }
+.settlement-summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+.settlement-summary-card { background:#18212d; color:#f8fafc; border:1px solid #2c3a4b; border-radius:16px; min-height:132px; padding:17px 12px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; box-shadow:0 10px 22px rgba(9,16,28,.18); }
+.settlement-summary-card.summary-highlight { border-color:#e4b934; box-shadow:0 0 0 1px rgba(228,185,52,.24),0 12px 28px rgba(9,16,28,.22); }
+.summary-icon { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#f0c040; border:1px solid #a77d20; box-shadow:0 0 18px rgba(240,192,64,.24); }
+.summary-value { font-size:24px; font-weight:900; }
+.summary-label { color:#9db0c4; font-size:11px; }
+.compact-stat-row { margin-top:18px; margin-bottom:18px; }
+.dashboard-audio-card { margin-top:20px; }
+@media (max-width:560px) { .compact-stat-row { margin-top:16px; margin-bottom:16px; gap:12px; } .dashboard-audio-card { margin-top:18px; } }
+
+@media (prefers-reduced-motion: reduce) { .snow-layer, .snow-layer::before, .snow-layer::after { animation:none; } .task-row, .task-submit-trigger, .card { transition:none !important; } }
+@media (max-width: 560px) {
+  .task-row { grid-template-columns:1fr; gap:10px; }
+  .task-submit-trigger { width:100%; }
+  .settlement-hero { min-height:220px; align-items:flex-start; padding:18px; }
+  .settlement-hero-avatar { width:52px; height:52px; font-size:20px; }
+  .settlement-summary-grid { gap:7px; }
+  .settlement-summary-card { min-height:112px; padding:10px 5px; }
+  .summary-value { font-size:18px; }
+}
+
+/* ── Promotion platforms carousel ── */
+.platforms-section { margin: 0 0 14px; }
+.platforms-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.platforms-kicker { color:#f0c040; font-size:10px; font-weight:800; letter-spacing:1.8px; }
+.platforms-heading h2 { color:#f8fafc; font-size:18px; margin-top:3px; }
+.platforms-hint { color:#aebed0; font-size:11px; white-space:nowrap; }
+.platforms-carousel { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 10px; scrollbar-width:thin; }
+.logo-gallery { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:12px 0 14px; }
+.logo-item { aspect-ratio:1; display:grid; place-items:center; padding:10px; border:1px solid rgba(124,92,255,.45); border-radius:15px; background:linear-gradient(145deg,rgba(30,36,78,.9),rgba(15,20,48,.95)); box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2); animation:logoIn .55s ease both,logoGlow 3.5s ease-in-out infinite; }
+.logo-item:nth-child(2n){animation-delay:.08s}.logo-item:nth-child(3n){animation-delay:.16s}.logo-item:hover{transform:translateY(-3px) scale(1.03);border-color:#8d7bff;box-shadow:0 0 22px rgba(69,162,255,.45),0 0 30px rgba(124,92,255,.25)}
+.logo-item img { max-width:100%; max-height:100%; object-fit:contain; border-radius:10px; }
+@keyframes logoIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes logoGlow{0%,100%{box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2)}50%{box-shadow:0 0 0 1px rgba(141,123,255,.38),0 0 24px rgba(69,162,255,.2)}}
+.platform-card { flex:0 0 190px; min-height:104px; scroll-snap-align:start; padding:14px; border-radius:14px; border:1px solid #34465a; background:linear-gradient(145deg,#182534,#101923); color:#f8fafc; box-shadow:0 8px 18px rgba(0,0,0,.16); }
+.platform-card strong { display:block; margin-top:9px; font-size:13px; }
+.platform-card small { display:block; color:#8fa3b8; margin-top:4px; font-size:10px; }
+.platform-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; color:#f0c040; border:1px solid #b88620; font-size:11px; font-weight:900; }
+/* ═══════════════════════════════════════
+   HOME PAGE
+═══════════════════════════════════════ */
+
+/* Hero / Welcome */
+.hero {
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(37,99,235,.12) 0%, transparent 60%),
+    linear-gradient(135deg, #ffffff, #e8f0fe);
+  border: 1px solid #d6e4ff;
+  border-radius: var(--radius); padding: 22px 18px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '♦'; position: absolute; top: -16px; right: -8px;
+  font-size: 100px; color: var(--red2); opacity: .08; pointer-events: none;
+}
+.hero-avatar {
+  width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 12px;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  display: grid; place-items: center; font-size: 26px; font-weight: 900; color: #fff;
+  border: 2px solid #1d4ed8;
+  box-shadow: 0 6px 28px rgba(37,99,235,.4);
+}
+.hero-name { font-size: 20px; font-weight: 800; color: var(--text); }
+.hero-verified {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+  background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.25);
+  color: var(--green3); font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 999px;
+}
+
+/* Balance */
+.balance-card {
+  background:
+    radial-gradient(ellipse at 10% 80%, rgba(245,158,11,.12) 0%, transparent 55%),
+    linear-gradient(135deg, #ffffff, #fdf6e3);
+  border: 1px solid #f3e3bd; border-radius: var(--radius);
+  padding: 20px 18px; margin-top: 12px; position: relative; overflow: hidden;
+}
+.balance-card::after {
+  content: '♠'; position: absolute; right: -10px; bottom: -20px;
+  font-size: 90px; color: var(--gold3); opacity: .08; pointer-events: none;
+}
+.bal-label { font-size: 11px; color: var(--gold3); text-transform: uppercase; letter-spacing: 2px; }
+.bal-amount {
+  font-size: 42px; font-weight: 900; margin: 6px 0 2px;
+  background: linear-gradient(135deg, #111827 30%, #2563eb 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.bal-sub { font-size: 12px; color: var(--muted); }
+
+/* Quick Actions */
+.quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.qa-btn {
+  border: none; border-radius: 16px; padding: 16px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 800; text-align: center;
+  transition: .2s; position: relative; overflow: hidden;
+  letter-spacing: .3px; cursor: pointer;
+}
+.qa-btn:active { transform: scale(.94); }
+.qa-btn .qa-icon {
+  font-size: 0; line-height: 1;
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.22);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.35);
+  transition: .2s;
+}
+.qa-btn .qa-icon span { font-size: 22px; }
+
+.qa-btn.qa-withdraw,.qa-btn.qa-invite,.qa-btn.qa-profile { background:linear-gradient(135deg,#182a63,#2563eb 55%,#7c5cff); color:#fff; border:1px solid rgba(141,123,255,.5); box-shadow:0 8px 22px rgba(37,99,235,.22); }
+.qa-btn.qa-invite { background:linear-gradient(135deg,#241c63,#6d4aff 55%,#a78bfa); }
+.qa-btn.qa-profile { background:linear-gradient(135deg,#132b55,#2563eb 55%,#45a2ff); }
+.qa-btn.qa-withdraw:hover,.qa-btn.qa-invite:hover,.qa-btn.qa-profile:hover { transform:translateY(-2px); border-color:#b7aaff; box-shadow:0 0 24px rgba(124,92,255,.35),0 12px 28px rgba(0,0,0,.22); }
+.qa-btn:active { transform:translateY(0) scale(.98); }
+
+/* Stats row */
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.stat-box {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 10px; text-align: center;
+}
+.stat-val { font-size: 22px; font-weight: 900; }
+.stat-val.gold  { color: var(--gold2); }
+.stat-val.green { color: var(--green3); }
+.stat-val.red   { color: var(--red4); }
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Transaction list */
+.tx-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.tx-item:last-child { border-bottom: none; }
+.tx-left { display: flex; align-items: center; gap: 10px; }
+.tx-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 16px; flex-shrink: 0;
+}
+.tx-title { font-size: 13px; font-weight: 700; }
+.tx-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.tx-amt { font-size: 14px; font-weight: 800; }
+.tx-amt.credit { color: var(--green3); }
+.tx-amt.debit  { color: var(--red4); }
+
+/* Notif item */
+.notif-item {
+  display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(240,192,64,.1); display: grid; place-items: center; font-size: 15px;
+}
+.notif-title { font-size: 13px; font-weight: 700; }
+.notif-msg   { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.notif-time  { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+
+/* ═══════════════════════════════════════
+   WITHDRAWAL PAGE
+═══════════════════════════════════════ */
+.wbal-card {
+  background:
+    radial-gradient(ellipse at 10% 80%, rgba(16,185,129,.1) 0%, transparent 55%),
+    linear-gradient(135deg, #ffffff, #ecfdf5);
+  border: 1px solid #a7f3d0; border-radius: var(--radius); padding: 20px 18px;
+}
+.wbal-label { font-size: 11px; color: var(--green3); text-transform: uppercase; letter-spacing: 2px; opacity: .8; }
+.wbal-amount { font-size: 38px; font-weight: 900; color: var(--green3); margin: 6px 0 2px; }
+.wbal-sub    { font-size: 12px; color: var(--muted); }
+
+.wd-form { margin-top: 12px; }
+.wd-form .group input,
+.wd-form .group select { background: var(--bg2); }
+
+.amount-row { position: relative; }
+.amount-row .peso {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--gold2); font-weight: 700; pointer-events: none;
+}
+.amount-row input { padding-left: 28px !important; }
+.min-note { font-size: 11px; color: var(--muted2); margin-top: 5px; }
+
+.wd-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.wd-row:last-child { border-bottom: none; }
+.wd-bank  { font-size: 13px; font-weight: 700; }
+.wd-acct  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.wd-amt   { font-size: 14px; font-weight: 800; color: var(--red4); }
+.wd-date  { font-size: 11px; color: var(--muted2); margin-top: 3px; text-align: right; }
+
+/* ═══════════════════════════════════════
+   INVITE PAGE
+═══════════════════════════════════════ */
+.invite-hero {
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(245,158,11,.15) 0%, transparent 55%),
+    linear-gradient(135deg, #ffffff, #fdf6e3);
+  border: 1px solid #f3e3bd; border-radius: var(--radius); padding: 22px 18px; text-align: center;
+}
+.invite-emoji { font-size: 44px; line-height: 1; margin-bottom: 8px; }
+.invite-title { font-size: 18px; font-weight: 800; color: #b45309; margin-bottom: 6px; }
+.invite-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+.code-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--bg2); border: 1px dashed var(--gold3);
+  border-radius: var(--radius); padding: 16px 18px; margin-top: 12px;
+}
+.code-text { font-size: 26px; font-weight: 900; letter-spacing: 5px; color: var(--gold2); }
+.copy-btn {
+  background: linear-gradient(135deg, #b8860b, #f0c040);
+  color: #fff; border: none; border-radius: 9px;
+  padding: 9px 14px; font-size: 12px; font-weight: 800;
+  flex-shrink: 0; transition: .2s;
+}
+.copy-btn:hover { filter: brightness(1.1); }
+
+.link-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 14px; margin-top: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.link-text { font-size: 12px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-copy {
+  background: none; border: 1px solid var(--border2);
+  color: var(--gold3); border-radius: 7px; padding: 5px 10px; font-size: 11px; flex-shrink: 0;
+}
+
+.share-btn {
+  width: 100%; margin-top: 10px; padding: 13px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #7a1a0a, #b83020);
+  color: #fff; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 18px rgba(155,26,26,.35); transition: .2s;
+}
+.share-btn:hover { filter: brightness(1.1); }
+
+.ref-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.ref-stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+.ref-stat-val { font-size: 26px; font-weight: 900; color: var(--gold2); }
+.ref-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.ref-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.ref-row:last-child { border-bottom: none; }
+.ref-name { font-size: 13px; font-weight: 700; }
+.ref-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ref-init {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(240,192,64,.1); border: 1px solid var(--gold3);
+  display: grid; place-items: center; font-weight: 900; color: var(--gold2);
+}
+
+/* ═══════════════════════════════════════
+   PROFILE PAGE
+═══════════════════════════════════════ */
+.profile-hero { text-align: center; padding: 22px 16px; }
+.profile-avatar {
+  width: 82px; height: 82px; border-radius: 50%; margin: 0 auto 12px;
+  background: linear-gradient(135deg, #9b1a1a, #e74c3c);
+  display: grid; place-items: center; font-size: 32px; font-weight: 900; color: #fff;
+  border: 2px solid #6b2218;
+  box-shadow: 0 8px 32px rgba(155,26,26,.45);
+}
+.profile-name  { font-size: 20px; font-weight: 800; }
+.profile-phone { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 12px; color: var(--muted); }
+.info-value { font-size: 13px; font-weight: 700; text-align: right; max-width: 55%; word-break: break-word; }
+
+.logout-btn {
+  width: 100%; margin-top: 14px; padding: 14px; border: none;
+  border-radius: 12px; background: rgba(192,57,43,.12);
+  border: 1px solid #6b2218; color: var(--red4);
+  font-weight: 800; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: .2s;
+}
+.logout-btn:hover { background: rgba(192,57,43,.22); }
+
+/* ── Confirm Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(17,24,39,.55);
+  backdrop-filter: blur(4px); display: grid; place-items: center;
+  padding: 20px; z-index: 40;
+}
+.modal-box {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 20px; width: 100%; max-width: 360px;
+  padding: 26px; animation: fadeUp .25s ease; box-shadow: var(--shadow);
+}
+.modal-box h3 { font-size: 18px; font-weight: 800; color: var(--gold2); margin-bottom: 8px; }
+.modal-box p  { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+.modal-btns   { display: flex; gap: 10px; }
+.modal-cancel {
+  flex: 1; padding: 13px; border-radius: 10px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  color: var(--text); font-weight: 700;
+}
+.modal-confirm {
+  flex: 1; padding: 13px; border-radius: 10px;
+  background: var(--red2); border: none; color: #fff; font-weight: 800;
+}
+
+/* Responsive */
+.dashboard-hero { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; padding:18px; border:1px solid rgba(124,92,255,.55); border-radius:18px; background:linear-gradient(135deg,#17134a,#101f58 55%,#142d67); box-shadow:0 0 0 1px rgba(69,162,255,.2),0 0 26px rgba(124,92,255,.18); animation:premiumPulse 4s ease-in-out infinite; position:relative; overflow:hidden; }
+.dashboard-hero > * { position:relative; z-index:2; }
+
+.dashboard-summary-grid { width:min(100%,480px); margin:12px auto; grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:center; }
+.dashboard-summary-grid .settlement-summary-card { min-width:0; }
+.dashboard-hero .hero-avatar { width:58px; height:58px; margin:0; border:2px solid rgba(255,255,255,.5); }
+.hero-kicker { color:#8fb8ff; font-size:10px; font-weight:800; letter-spacing:1.5px; }
+.dashboard-hero h1 { color:#fff; font-size:22px; margin:2px 0; }.dashboard-hero p,.hero-balance span { color:#b9c7e9; font-size:12px; }.hero-balance { text-align:right; }.hero-balance strong { display:block; color:#e5dcff; font-size:22px; margin-top:3px; }.dashboard-summary-grid { width:min(100%,480px); margin:12px auto; grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:center; }.dashboard-summary-grid .settlement-summary-card { background:linear-gradient(145deg,rgba(28,31,83,.96),rgba(17,29,67,.96)); border-color:rgba(69,162,255,.35); min-width:0; }.dashboard-summary-grid .summary-label { color:#a8b8e5; font-size:11px; }.dashboard-summary-grid .summary-value { color:#d9d2ff; }
+@keyframes premiumPulse { 0%,100% { box-shadow:0 0 0 1px rgba(69,162,255,.18),0 0 20px rgba(124,92,255,.12); } 50% { box-shadow:0 0 0 1px rgba(141,123,255,.5),0 0 34px rgba(69,162,255,.24); } }
+@media(max-width:599px){.logo-gallery{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.dashboard-hero{grid-template-columns:auto 1fr}.hero-balance{grid-column:1/-1;text-align:left}.dashboard-hero h1{font-size:19px}}
+@media(min-width:600px) {
+  .quick-actions { grid-template-columns: repeat(3, 1fr); }
+  .page-wrap { padding: 22px 22px 84px; }
+}
+@media(prefers-reduced-motion:reduce){.logo-item,.dashboard-hero{animation:none!important}.logo-item:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="snow-layer" aria-hidden="true"></div>
+<div class="page-video-bg is-visible" aria-hidden="true" id="bgVideoLayer"></div>
+<div class="page-video-overlay is-visible" aria-hidden="true" id="bgVideoOverlay"></div>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="brand-wrap">
+      <span class="brand-logo">TTPRO</span>
+      <span class="brand-suits">♠ ♥ ♦ ♣</span>
+    </div>
+    <div class="brand-divider"></div>
+    <div class="brand-tagline">Account Portal</div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="loginTab">Login</button>
+      <button class="tab-btn"        id="registerTab">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+      <div class="group">
+        <label>Username</label>
+        <input id="loginUsername" type="text" placeholder="Enter your username" autocomplete="username" required>
+      </div>
+      <div class="group">
+        <label>Password</label>
+        <input id="loginPassword" type="password" placeholder="Enter your password" required>
+      </div>
+      <div id="loginErr" class="form-err"></div>
+      <button class="btn-primary" type="submit">Login to Account</button>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" class="hidden">
+      <div class="group">
+        <label>Username</label>
+        <input id="regUsername" type="text" placeholder="Choose a username (3-30 chars)" minlength="3" maxlength="30" autocomplete="username" required>
+      </div>
+      <div class="group">
+        <label>Full Name</label>
+        <input id="regName" type="text" placeholder="Enter your full name" required>
+      </div>
+      <div class="group">
+        <label>Password</label>
+        <input id="regPassword" type="password" placeholder="At least 6 characters" minlength="6" required>
+      </div>
+      <div class="group">
+        <label>Invitation Code <span class="opt-label">(optional)</span></label>
+        <input id="regInviteCode" type="text" placeholder="Enter code if you have one" maxlength="12">
+      </div>
+      <div id="registerErr" class="form-err"></div>
+      <button class="btn-primary" type="submit">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ OTP VERIFY SCREEN ═══ -->
+<div id="verifyScreen" class="auth-screen hidden">
+  <div class="auth-card">
+    <div class="brand-wrap">
+      <span class="brand-logo">TTPRO</span>
+    </div>
+    <div class="brand-divider"></div>
+    <h2 style="text-align:center;font-size:18px;margin-bottom:6px;color:var(--gold2)">Verify Your Email</h2>
+    <p class="verify-note">Enter the 6-digit code sent to <strong id="maskedPhone"></strong></p>
+
+    <div class="demo-box">
+      <div class="d-label">Development OTP (check your email)</div>
+      <div class="d-code" id="demoCode">——————</div>
+    </div>
+
+    <input id="verifyCode" class="otp-input" inputmode="numeric" maxlength="6" placeholder="000000">
+    <div id="verifyMsg" class="verify-note" style="margin-top:8px"></div>
+    <button class="btn-gold" id="verifyBtn" style="margin-top:14px">Verify Account</button>
+    <button class="link-btn" id="resendBtn">Resend Code</button>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
+<div id="appShell" class="hidden">
+
+  <header class="topbar">
+    <div class="topbar-logo">Team Potato</div>
+    <span class="topbar-suits">♠ ♥ ♦ ♣</span>
+    <div class="topbar-avatar" id="topAvatar" onclick="switchPage('profile')">A</div>
+  </header>
+
+  <main>
+
+    <!-- ── HOME ── -->
+    <section id="pageHome" class="page-wrap">
+
+      <section class="platforms-section">
+        <div class="platforms-heading">
+          <div>
+            <div class="platforms-kicker">PROMOTION HUB</div>
+            <h2>TTPRO Gaming Platforms</h2>
+          </div>
+          <span class="platforms-hint">Join Now!</span>
+        </div>
+        <div class="logo-gallery" aria-label="TTPRO promotion platforms">
+          <div class="logo-item"><img src="k1.jpg" alt="Platform logo 1" loading="lazy"></div>
+          <div class="logo-item"><img src="k2.jpg" alt="Platform logo 2" loading="lazy"></div>
+          <div class="logo-item"><img src="k3.jpg" alt="Platform logo 3" loading="lazy"></div>
+          <div class="logo-item"><img src="k4.jpg" alt="Platform logo 4" loading="lazy"></div>
+          <div class="logo-item"><img src="k5.jpg" alt="Platform logo 5" loading="lazy"></div>
+          <div class="logo-item"><img src="k6.jpg" alt="Platform logo 6" loading="lazy"></div>
+          <div class="logo-item"><img src="k7.jpg" alt="Platform logo 7" loading="lazy"></div>
+          <div class="logo-item"><img src="k8.jpg" alt="Platform logo 8" loading="lazy"></div>
+          <div class="logo-item"><img src="k9.jpg" alt="Platform logo 9" loading="lazy"></div>
+          <div class="logo-item"><img src="k10.jpg" alt="Platform logo 10" loading="lazy"></div>
+          <div class="logo-item"><img src="k11.jpg" alt="Platform logo 11" loading="lazy"></div>
+          <div class="logo-item"><img src="k12.jpg" alt="Platform logo 12" loading="lazy"></div>
+        </div>
+      </section>
+
+      <section class="hero dashboard-hero" aria-label="Account summary">
+        <div class="hero-avatar" id="heroAvatar">A</div>
+        <div class="hero-copy"><div class="hero-kicker">WELCOME BACK</div><h1 id="heroName">Player</h1><p>Your premium TTPRO account overview</p></div>
+        <div class="hero-balance"><span>Available balance</span><strong id="homeBalance">₱0.00</strong></div>
+      </section>
+
+      <div class="quick-actions">
+        <button class="qa-btn qa-withdraw" onclick="switchPage('withdrawal')">
+          <span class="qa-icon"><span>💸</span></span>Withdraw
+        </button>
+        <button class="qa-btn qa-invite" onclick="switchPage('invite')">
+          <span class="qa-icon"><span>🎁</span></span>Invite
+        </button>
+        <button class="qa-btn qa-profile" onclick="switchPage('profile')">
+          <span class="qa-icon"><span>👤</span></span>Profile
+        </button>
+      </div>
+
+      <div class="settlement-summary-grid dashboard-summary-grid" aria-label="Account metrics">
+        <div class="settlement-summary-card"><span class="summary-label">Cash</span><strong class="summary-value" id="homeTotalAmount">₱0.00</strong></div>
+        <div class="settlement-summary-card"><span class="summary-label">Referrals</span><strong class="summary-value" id="homeReferrals">0</strong></div>
+
+      </div>
+
+
+      <div class="stat-row compact-stat-row dashboard-stats-row">
+        <div class="stat-box"><div class="stat-val red" id="homeUnread">0</div><div class="stat-lbl">Notifications</div></div>
+        <div class="stat-box"><div class="stat-val gold" id="homeActivityCount">0</div><div class="stat-lbl">Activity Records</div></div>
+      </div>
+<div class="card dashboard-audio-card" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px" aria-label="Seasonal music controls">
+
+  <div>
+    <div style="color:var(--gold2);font-weight:800">🎄 Seasonal music</div>
+    <div id="audioStatus" style="color:var(--muted);font-size:12px;margin-top:3px">
+      Loading music...
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <button type="button" id="audioPlay" aria-label="Play or pause seasonal music" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(37,99,235,.4);background:rgba(37,99,235,.08);color:#2563eb;font-weight:700;transition:all .3s ease;cursor:pointer">
+      ▶ Play
+    </button>
+  </div>
+
+  <audio id="holidayAudio" preload="auto" loop>
+    <source src="/jinglebell.mp3" type="audio/mpeg">
+  </audio>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const audio = document.getElementById("holidayAudio");
+  const playBtn = document.getElementById("audioPlay");
+  const status = document.getElementById("audioStatus");
+  const bgVideoLayer = document.getElementById("bgVideoLayer");
+  const bgVideoOverlay = document.getElementById("bgVideoOverlay");
+
+  audio.volume = 0.35;
+  audio.loop = true;
+
+  bgVideoLayer.classList.add("is-visible");
+  bgVideoOverlay.classList.add("is-visible");
+
+  audio.addEventListener("canplay", function () {
+    status.textContent = "Seasonal music ready 🎄";
+
+    audio.play().then(function () {
+      playBtn.textContent = "⏸ Pause";
+      status.textContent = "Playing seasonal music 🎄";
+    }).catch(function () {
+      status.textContent = "Click play to start the music 🎄";
+    });
+  });
+
+  audio.addEventListener("error", function () {
+    status.textContent = "❌ Cannot load jinglebell.mp3";
+    console.error("Cannot load:", audio.currentSrc);
+  });
+
+  playBtn.addEventListener("click", async function () {
+    if (audio.paused) {
+      try {
+        await audio.play();
+        playBtn.textContent = "⏸ Pause";
+        status.textContent = "Playing seasonal music 🎄";
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      audio.pause();
+      playBtn.textContent = "▶ Play";
+      status.textContent = "Music paused";
+    }
+  });
+
+  toggleBackgroundBtn.addEventListener("click", function () {
+    const visible = !bgVideoLayer.classList.contains("is-visible");
+    setBackgroundVisible(visible);
+  });
+
+  document.addEventListener("click", async function () {
+    if (audio.paused) {
+      try {
+        await audio.play();
+        playBtn.textContent = "⏸ Pause";
+        status.textContent = "Playing seasonal music 🎄";
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, { once: true });
+});
+</script>
+
+
+
+      <div class="suit-divider">♠ ♥ ♦ ♣</div>
+
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">💰 Recent Transactions</div>
+        </div>
+        <div style="padding:4px 16px 8px" id="recentTxList">
+          <div class="empty-state"><div class="empty-icon">💰</div>Loading...</div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🔔 Notifications</div>
+        </div>
+        <div style="padding:4px 16px 8px" id="homeNotifList">
+          <div class="empty-state"><div class="empty-icon">🔔</div>Loading...</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── WITHDRAWAL ── -->
+    <section id="pageWithdrawal" class="page-wrap hidden">
+
+      <div class="wbal-card">
+        <div class="wbal-label">Available Balance</div>
+        <div class="wbal-amount" id="wdrawBalance">₱0.00</div>
+        <div class="wbal-sub">Minimum withdrawal: ₱100</div>
+      </div>
+
+      <div class="card wd-form">
+        <div class="card-head">
+          <div class="card-title">💳 Withdrawal Request</div>
+        </div>
+        <div style="padding:16px">
+          <form id="withdrawForm">
+            <div class="group">
+              <label>Amount</label>
+              <div class="amount-row">
+                <span class="peso">₱</span>
+                <input id="wdrawAmount" type="number" min="100" step="0.01" placeholder="0.00" required>
+              </div>
+              <div class="min-note">Min ₱100 &nbsp;·&nbsp; Available: <span id="wdrawAvail">₱0.00</span></div>
+            </div>
+            <div class="group">
+              <label>Bank / E-Wallet</label>
+              <select id="wdrawBank" required>
+                <option value="">Select bank or e-wallet</option>
+                <optgroup label="Banks">
+                  <option>BDO Unibank</option>
+                  <option>BPI (Bank of the Philippine Islands)</option>
+                  <option>Metrobank</option>
+                  <option>UnionBank</option>
+                  <option>Landbank</option>
+                  <option>RCBC</option>
+                  <option>Security Bank</option>
+                  <option>PNB (Philippine National Bank)</option>
+                  <option>Chinabank</option>
+                  <option>EastWest Bank</option>
+                </optgroup>
+                <optgroup label="E-Wallets">
+                  <option>GCash</option>
+                  <option>Maya (PayMaya)</option>
+                  <option>ShopeePay</option>
+                  <option>GoTyme</option>
+                  <option>Coins.ph</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="group">
+              <label>Account Name</label>
+              <input id="wdrawAcctName" type="text" placeholder="Full name on account" required>
+            </div>
+            <div class="group">
+              <label>Account Number</label>
+              <input id="wdrawAcctNum" type="text" placeholder="Account / mobile number" required>
+            </div>
+            <div id="wdrawErr" class="form-err"></div>
+            <button class="btn-primary" type="submit">Submit Withdrawal</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🕐 Withdrawal History</div>
+        </div>
+        <div style="padding:4px 16px 8px" id="wdrawHistoryList">
+          <div class="empty-state"><div class="empty-icon">💳</div>Loading...</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── GLOBAL CHAT ── -->
+    <section id="pageChat" class="page-wrap hidden">
+
+      <div class="page-head">
+        <div class="page-title">🌎 Global Chat</div>
+        <div class="page-sub">Talk with all TTPRO members</div>
+      </div>
+
+      <div class="card chat-card">
+        <div class="chat-box" id="chatBox">
+          <div class="empty-state"><div class="empty-icon">💬</div>Loading messages...</div>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="Type a message..." maxlength="500" autocomplete="off" required>
+          <button class="chat-send" type="submit">➤</button>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- ── EARN TASKS ── -->
+    <section id="pageTasks" class="page-wrap hidden">
+
+      <div class="page-head">
+        <div class="page-title">💼 Earn Tasks</div>
+        <div class="page-sub">Complete tasks and earn ₱ instantly</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">📋 Available Tasks</div>
+          <button class="link-btn" onclick="loadTasks()" style="color:var(--gold2)">↻ Refresh</button>
+        </div>
+        <div style="padding:4px 16px 12px" id="taskList">
+          <div class="empty-state"><div class="empty-icon">💼</div>Loading tasks...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🕐 My Submissions</div>
+        </div>
+        <div style="padding:4px 16px 12px" id="taskSubmissions">
+          <div class="empty-state"><div class="empty-icon">📨</div>No submissions yet.</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── INVITE ── -->
+    <section id="pageInvite" class="page-wrap hidden">
+
+      <div class="invite-hero">
+        <div class="invite-emoji">🎁</div>
+        <div class="invite-title">Invite & Earn</div>
+        <div class="invite-desc">Share your code with friends and earn rewards for every successful referral.</div>
+      </div>
+
+      <div class="card" style="margin-top:12px;padding:16px">
+        <div class="card-title" style="margin-bottom:14px">🔑 Your Invitation Code</div>
+        <div class="code-box">
+          <div class="code-text" id="inviteCode">———</div>
+          <button class="copy-btn" id="copyCodeBtn">📋 Copy</button>
+        </div>
+        <div class="link-box">
+          <span class="link-text" id="inviteLink">Loading...</span>
+          <button class="link-copy" id="copyLinkBtn">Copy Link</button>
+        </div>
+        <button class="share-btn" id="shareBtn">🚀 Share Invitation</button>
+      </div>
+
+      <div class="ref-stats">
+        <div class="ref-stat-box">
+          <div class="ref-stat-val" id="totalReferrals">0</div>
+          <div class="ref-stat-lbl">Total Referrals</div>
+        </div>
+        <div class="ref-stat-box">
+          <div class="ref-stat-val" id="activeReferrals">0</div>
+          <div class="ref-stat-lbl">This Month</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">👥 Referred Members</div>
+        </div>
+        <div style="padding:4px 16px 8px" id="referralList">
+          <div class="empty-state"><div class="empty-icon">👥</div>No referrals yet. Share your code!</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── PROFILE ── -->
+    <section id="pageProfile" class="page-wrap hidden">
+      <div class="card">
+        <div class="profile-hero">
+          <div class="profile-avatar" id="profileAvatar">A</div>
+          <div class="profile-name"  id="profileName">—</div>
+          <div class="profile-phone" id="profilePhone">—</div>
+          <div style="margin-top:12px">
+            <label class="avatar-upload" for="avatarInput">📷 Add / Change Photo</label>
+            <input type="file" id="avatarInput" accept="image/*" style="display:none">
+          </div>
+          <div style="margin-top:10px" id="profileStatusBadge"></div>
+        </div>
+
+        <div style="padding:0 16px 16px">
+          <div class="info-row">
+            <span class="info-label">Cash Balance</span>
+            <span class="info-value" id="profileBalance" style="color:var(--green3)">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Account Status</span>
+            <span class="info-value" id="profileStatus">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Verified</span>
+            <span class="info-value" id="profileVerified">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Invitation Code</span>
+            <span class="info-value" id="profileInvCode" style="color:var(--gold2)">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Total Referrals</span>
+            <span class="info-value" id="profileReferrals">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Member Since</span>
+            <span class="info-value" id="profileSince">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Last Login</span>
+            <span class="info-value" id="profileLastLogin">—</span>
+          </div>
+        </div>
+
+        <div style="padding:0 16px 16px">
+          <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="navHome" onclick="switchPage('home')">
+      <span class="nav-icon">🏠</span>Home
+    </button>
+    <button class="nav-btn" id="navChat" onclick="switchPage('chat')">
+      <span class="nav-icon">💬</span>Chat
+    </button>
+    <button class="nav-btn" id="navWithdrawal" onclick="switchPage('withdrawal')">
+      <span class="nav-icon">💸</span>Withdraw
+    </button>
+    <button class="nav-btn" id="navTasks" onclick="switchPage('tasks')">
+      <span class="nav-icon">💼</span>Tasks
+    </button>
+    <button class="nav-btn" id="navInvite" onclick="switchPage('invite')">
+      <span class="nav-icon">🎁</span>Invite
+    </button>
+    <button class="nav-btn" id="navProfile" onclick="switchPage('profile')">
+      <span class="nav-icon">👤</span>Profile
+    </button>
+  </nav>
+</div>
+
+<!-- Logout Modal -->
+<div id="logoutModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>♠ Logout</h3>
+    <p>Are you sure you want to logout from your TTPRO account?</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="$('logoutModal').classList.add('hidden')">Cancel</button>
+      <button class="modal-confirm" id="confirmLogout">Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Submit Modal -->
+<div id="taskSubmitModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>✅ Submit Task</h3>
+    <form id="taskSubmitForm">
+      <div class="modal-body">
+        <div class="group">
+          <label class="modal-label" for="taskSubmitProof">Proof / Notes</label>
+          <textarea id="taskSubmitProof" class="modal-textarea" placeholder="Describe what you did, or paste a link/screenshot proof..." required></textarea>
+        </div>
+        <div id="taskSubmitMsg" class="form-err" role="alert"></div>
+        <div class="modal-btns">
+          <button type="button" class="modal-cancel" id="taskSubmitCancel">Cancel</button>
+          <button type="button" class="modal-confirm" id="taskSubmitClose">Close</button>
+        </div>
+        <button class="btn-primary" type="submit" style="width:100%;margin-top:10px">Submit Task</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════
+   CORE UTILS
+═══════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+let currentUser = null;
+let dashboardData = null;
+
+function toast(msg, type = '') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 2600);
+}
+
+async function api(url, opts = {}) {
+  const r = await fetch(url, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts
+  });
+  let d = {};
+  try { d = await r.json(); } catch {}
+  if (!r.ok) throw new Error(d.message || 'Request failed');
+  return d;
+}
+
+function money(v) {
+  return '₱' + Number(v || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function fmtShort(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
+
+function maskPhone(p) {
+  if (!p || p.length < 7) return p;
+  return p.slice(0, 4) + '••••••' + p.slice(-3);
+}
+
+function maskEmail(e) {
+  if (!e || !e.includes('@')) return e || '';
+  const [u, d] = e.split('@');
+  const head = u.slice(0, 2);
+  const tail = u.slice(-1);
+  return `${head}•••${tail}@${d}`;
+}
+
+function badgeHtml(s) {
+  const map = { pending: 'pending', approved: 'approved', completed: 'completed', rejected: 'rejected', active: 'active', frozen: 'frozen' };
+  const cls = map[(s || '').toLowerCase()] || 'pending';
+  return `<span class="badge ${cls}">${esc(s)}</span>`;
+}
+
+/* ═══════════════════════════════════════
+   AUTH TABS
+═══════════════════════════════════════ */
+function switchTab(name) {
+  $('loginTab').classList.toggle('active',    name === 'login');
+  $('registerTab').classList.toggle('active', name === 'register');
+  $('loginForm').classList.toggle('hidden',    name !== 'login');
+  $('registerForm').classList.toggle('hidden', name !== 'register');
+  $('loginErr').textContent = '';
+  $('registerErr').textContent = '';
+}
+$('loginTab').onclick    = () => switchTab('login');
+$('registerTab').onclick = () => switchTab('register');
+
+/* ═══════════════════════════════════════
+   REGISTER
+═══════════════════════════════════════ */
+$('registerForm').onsubmit = async e => {
+  e.preventDefault();
+  $('registerErr').textContent = '';
+  const btn = e.target.querySelector('.btn-primary');
+  btn.textContent = 'Creating account...'; btn.disabled = true;
+  try {
+    const d = await api('/api/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        username:    $('regUsername').value.trim(),
+        name:        $('regName').value.trim(),
+        password:    $('regPassword').value,
+        invite_code: $('regInviteCode').value.trim()
+      })
+    });
+    // Username-based registration has no OTP step — go straight in
+    await enterApp(d.user);
+  } catch(err) {
+    $('registerErr').textContent = err.message;
+  }
+  btn.textContent = 'Create Account'; btn.disabled = false;
+};
+
+/* ═══════════════════════════════════════
+   VERIFY OTP
+═══════════════════════════════════════ */
+$('verifyBtn').onclick = async () => {
+  const code = $('verifyCode').value.trim();
+  $('verifyMsg').textContent = '';
+  if (!code || code.length !== 6) { $('verifyMsg').textContent = 'Enter the 6-digit code.'; return; }
+  $('verifyBtn').textContent = 'Verifying...'; $('verifyBtn').disabled = true;
+  try {
+    const d = await api('/api/verify', { method: 'POST', body: JSON.stringify({ code }) });
+    await enterApp(d.user);
+  } catch(err) {
+    $('verifyMsg').textContent = err.message;
+  }
+  $('verifyBtn').textContent = 'Verify Account'; $('verifyBtn').disabled = false;
+};
+
+$('resendBtn').onclick = async () => {
+  try {
+    const d = await api('/api/resend', { method: 'POST' });
+    $('demoCode').textContent = d.developmentOtp || '——';
+    $('verifyMsg').textContent = 'A new code was generated.';
+    toast('New code generated', 'ok');
+  } catch(err) { $('verifyMsg').textContent = err.message; }
+};
+
+/* ═══════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════ */
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  $('loginErr').textContent = '';
+  const btn = e.target.querySelector('.btn-primary');
+  btn.textContent = 'Logging in...'; btn.disabled = true;
+  try {
+    const d = await api('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: $('loginUsername').value.trim(), password: $('loginPassword').value })
+    });
+    await enterApp(d.user);
+  } catch(err) {
+    $('loginErr').textContent = err.message;
+  }
+  btn.textContent = 'Login to Account'; btn.disabled = false;
+};
+
+/* ═══════════════════════════════════════
+   ENTER APP
+═══════════════════════════════════════ */
+async function enterApp(user) {
+  currentUser = user;
+  const init = (user.name || 'P').charAt(0).toUpperCase();
+  $('authScreen').classList.add('hidden');
+  $('verifyScreen').classList.add('hidden');
+  $('appShell').classList.remove('hidden');
+  renderAvatar($('topAvatar'), user.avatar, user.name);
+  renderAvatar($('heroAvatar'), user.avatar, user.name);
+  renderAvatar($('profileAvatar'), user.avatar, user.name);
+  $('heroName').textContent    = user.name || 'Player';
+  switchPage('home');
+  await loadDashboard();
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function switchPage(page) {
+  ['home', 'withdrawal', 'tasks', 'chat', 'invite', 'profile'].forEach(p => {
+    const pageId = 'page' + p.charAt(0).toUpperCase() + p.slice(1);
+    const navId  = 'nav'  + p.charAt(0).toUpperCase() + p.slice(1);
+    $(pageId).classList.toggle('hidden', p !== page);
+    $(navId).classList.toggle('active', p === page);
+  });
+  if (page === 'withdrawal') loadWithdrawal();
+  if (page === 'tasks')      loadTasks();
+  if (page === 'chat')       loadChat();
+  if (page === 'invite')     loadInvite();
+  if (page === 'profile')    loadProfile();
+}
+
+/* ═══════════════════════════════════════
+   DASHBOARD (HOME)
+═══════════════════════════════════════ */
+async function loadDashboard() {
+  try {
+    const d = await api('/api/dashboard');
+    dashboardData = d;
+    const bal = money(d.balance);
+    if ($('homeBalance')) $('homeBalance').textContent = bal;
+    $('wdrawBalance').textContent = bal;
+    $('wdrawAvail').textContent   = bal;
+    $('homeReferrals').textContent = d.total_referrals || 0;
+    $('homeUnread').textContent = d.unreadNotifications || 0;
+    if ($('homeTotalAmount')) $('homeTotalAmount').textContent = money((d.balance || 0) + (d.totalWithdrawals || 0));
+        const allActivity = [...(d.history || []), ...(d.recentWithdrawals || [])];
+    if ($('homeActivityCount')) $('homeActivityCount').textContent = allActivity.length;
+    renderRecentTx(d.history || [], d.recentWithdrawals || []);
+    renderHomeNotifs(d.notifications || []);
+  } catch(err) {
+    console.error('Dashboard error', err);
+    $('recentTxList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div>Unable to load transactions.</div>';
+    $('homeNotifList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div>Unable to load notifications.</div>';
+    toast('Failed to load dashboard', 'err');
+  }
+}
+
+function renderRecentTx(settlements, withdrawals) {
+  const box = $('recentTxList');
+  box.setAttribute('aria-live', 'polite');
+  const all = [
+    ...settlements.map(x => ({ ...x, _type: 'settlement' })),
+    ...withdrawals.map(x => ({ ...x, _type: 'withdrawal' }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 7);
+
+  if (!all.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div>No transactions yet.</div>';
+    return;
+  }
+  box.innerHTML = all.map(x => {
+    const isW  = x._type === 'withdrawal';
+    const icon = isW ? '💸' : '💰';
+    const bg   = isW ? 'rgba(231,76,60,.12)' : 'rgba(46,204,113,.12)';
+    const lbl  = isW ? (x.bank_name || 'Withdrawal') : (x.reference || 'Settlement');
+    const amt  = isW
+      ? `<span class="tx-amt debit">-${money(x.amount)}</span>`
+      : `<span class="tx-amt credit">+${money(x.amount)}</span>`;
+    return `<div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-icon" style="background:${bg}">${icon}</div>
+        <div>
+          <div class="tx-title">${esc(lbl)}</div>
+          <div class="tx-sub">${fmtShort(x.created_at)} &nbsp;${badgeHtml(x.status)}</div>
+        </div>
+      </div>
+      ${amt}
+    </div>`;
+  }).join('');
+}
+
+function renderHomeNotifs(notifs) {
+  const box = $('homeNotifList');
+  box.setAttribute('aria-live', 'polite');
+  if (!notifs.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div>No notifications yet.</div>';
+    return;
+  }
+  box.innerHTML = notifs.slice(0, 5).map(n => `
+    <div class="notif-item">
+      <div class="notif-icon">🔔</div>
+      <div>
+        <div class="notif-title">${esc(n.title)}</div>
+        <div class="notif-msg">${esc(n.message)}</div>
+        <div class="notif-time">${fmtDate(n.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════
+   WITHDRAWAL
+═══════════════════════════════════════ */
+async function loadWithdrawal() {
+  if (dashboardData) {
+    const bal = money(dashboardData.balance);
+    $('wdrawBalance').textContent = bal;
+    $('wdrawAvail').textContent   = bal;
+  }
+  try {
+    const d = await api('/api/withdrawals');
+    renderWithdrawHistory(d.withdrawals || []);
+  } catch(err) { console.error(err); }
+}
+
+function renderWithdrawHistory(list) {
+  const box = $('wdrawHistoryList');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>No withdrawal requests yet.</div>';
+    return;
+  }
+  box.innerHTML = list.map(w => `
+    <div class="wd-row">
+      <div>
+        <div class="wd-bank">${esc(w.bank_name)}</div>
+        <div class="wd-acct">${esc(w.account_name)} · ${esc(w.account_number)}</div>
+        <div style="margin-top:5px">${badgeHtml(w.status)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="wd-amt">-${money(w.amount)}</div>
+        <div class="wd-date">${fmtShort(w.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+$('withdrawForm').onsubmit = async e => {
+  e.preventDefault();
+  $('wdrawErr').textContent = '';
+  const amount      = $('wdrawAmount').value;
+  const bank_name   = $('wdrawBank').value;
+  const account_name   = $('wdrawAcctName').value.trim();
+  const account_number = $('wdrawAcctNum').value.trim();
+  if (!amount || !bank_name || !account_name || !account_number) {
+    $('wdrawErr').textContent = 'Please fill in all fields.'; return;
+  }
+  if (dashboardData && parseFloat(amount) > dashboardData.balance) {
+    $('wdrawErr').textContent = 'Insufficient balance.'; return;
+  }
+  const btn = e.target.querySelector('.btn-primary');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+  try {
+    await api('/api/withdraw', { method: 'POST', body: JSON.stringify({ amount, bank_name, account_name, account_number }) });
+    toast('Withdrawal request submitted!', 'ok');
+    e.target.reset();
+    await loadDashboard();
+    await loadWithdrawal();
+  } catch(err) {
+    $('wdrawErr').textContent = err.message;
+  }
+  btn.textContent = 'Submit Withdrawal'; btn.disabled = false;
+};
+
+/* ═══════════════════════════════════════
+   INVITE
+═══════════════════════════════════════ */
+async function loadInvite() {
+  try {
+    const d = await api('/api/invite');
+    const code = d.invitation_code || '———';
+    $('inviteCode').textContent = code;
+    $('totalReferrals').textContent  = d.total_referrals || 0;
+    $('activeReferrals').textContent = d.referrals?.length || 0;
+    const link = `${window.location.origin}/?ref=${code}`;
+    $('inviteLink').textContent = link;
+    $('inviteLink').dataset.link = link;
+    renderReferralList(d.referrals || []);
+  } catch(err) {
+    toast('Failed to load invitation info', 'err');
+  }
+}
+
+function renderReferralList(refs) {
+  const box = $('referralList');
+  if (!refs.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div>No referrals yet. Share your code!</div>';
+    return;
+  }
+  box.innerHTML = refs.map(r => `
+    <div class="ref-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="ref-init">${esc((r.name || 'U').charAt(0).toUpperCase())}</div>
+        <div>
+          <div class="ref-name">${esc(r.name)}</div>
+          <div class="ref-date">${fmtShort(r.created_at)}</div>
+        </div>
+      </div>
+      <span class="badge active">Member</span>
+    </div>
+  `).join('');
+}
+
+$('copyCodeBtn').onclick = () => {
+  navigator.clipboard.writeText($('inviteCode').textContent)
+    .then(() => toast('Code copied!', 'ok'))
+    .catch(() => toast('Copy failed', 'err'));
+};
+$('copyLinkBtn').onclick = () => {
+  const link = $('inviteLink').dataset.link || $('inviteLink').textContent;
+  navigator.clipboard.writeText(link)
+    .then(() => toast('Link copied!', 'ok'))
+    .catch(() => toast('Copy failed', 'err'));
+};
+$('shareBtn').onclick = () => {
+  const code = $('inviteCode').textContent;
+  const link = $('inviteLink').dataset.link || '';
+  if (navigator.share) {
+    navigator.share({ title: 'Join TTPRO', text: `Use my code ${code} to join TTPRO!`, url: link }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`Join TTPRO! Code: ${code}\n${link}`)
+      .then(() => toast('Invite text copied!', 'ok'));
+  }
+};
+
+/* ═══════════════════════════════════════
+   EARN TASKS
+═══════════════════════════════════════ */
+async function loadTasks() {
+  try {
+    const d = await api('/api/tasks');
+    renderTaskList(d.tasks || []);
+    renderTaskSubmissions(d.completions || []);
+  } catch(err) {
+    toast('Failed to load tasks', 'err');
+  }
+}
+
+function renderTaskList(tasks) {
+  const box = $('taskList');
+  if (!tasks.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">💼</div>No tasks available yet. Check back soon!</div>';
+    return;
+  }
+  box.innerHTML = tasks.map(t => {
+    let statusBadge = '';
+    if (t.my_status === 'Approved') {
+      statusBadge = '<span class="badge approved">✓ Done</span>';
+    } else if (t.my_status === 'Pending') {
+      statusBadge = '<span class="badge pending">⏳ Pending</span>';
+    } else if (t.my_status === 'Rejected') {
+      statusBadge = '<span class="badge rejected">✗ Rejected</span>';
+    }
+    const canSubmit = !t.my_status || t.my_status === 'Rejected';
+    return `
+    <div class="task-row">
+      <div style="flex:1">
+        <div class="task-title">${esc(t.title)} ${statusBadge}</div>
+        ${t.description ? `<div class="task-desc">${esc(t.description)}</div>` : ''}
+        <div class="task-reward">Reward: <strong style="color:var(--green3)">${money(t.reward)}</strong></div>
+      </div>
+      ${canSubmit
+        ? `<button type="button" class="btn-primary task-submit-trigger" data-task-id="${t.id}" onclick="openTaskSubmit(${t.id})">Submit</button>`
+        : ''}
+    </div>`;
+  }).join('');
+}
+
+let submitTaskId = null;
+
+function openTaskSubmit(taskId) {
+  submitTaskId = taskId;
+  $('taskSubmitProof').value = '';
+  $('taskSubmitMsg').textContent = '';
+  $('taskSubmitModal').classList.remove('hidden');
+}
+
+$('taskSubmitClose').onclick = () => $('taskSubmitModal').classList.add('hidden');
+$('taskSubmitCancel').onclick = () => $('taskSubmitModal').classList.add('hidden');
+
+$('taskSubmitForm').onsubmit = async e => {
+  e.preventDefault();
+  $('taskSubmitMsg').textContent = '';
+  if (!submitTaskId) { $('taskSubmitMsg').textContent = 'Please select a task first.'; return; }
+  const proof = $('taskSubmitProof').value.trim();
+  if (!proof) { $('taskSubmitMsg').textContent = 'Please describe or paste your proof.'; return; }
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+  try {
+    await api(`/api/tasks/${submitTaskId}/complete`, {
+      method: 'POST',
+      body: JSON.stringify({ proof })
+    });
+    $('taskSubmitModal').classList.add('hidden');
+    toast('Task submitted! Awaiting approval', 'ok');
+    loadTasks();
+  } catch(err) {
+    $('taskSubmitMsg').textContent = err.message;
+  }
+  btn.textContent = 'Submit Task'; btn.disabled = false;
+};
+
+function renderTaskSubmissions(list) {
+  const box = $('taskSubmissions');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">📨</div>No submissions yet. Complete a task to get started!</div>';
+    return;
+  }
+  box.innerHTML = list.map(s => `
+    <div class="task-sub-row">
+      <div style="flex:1">
+        <div class="task-title">${esc(s.title)}</div>
+        <div class="task-desc">${esc(s.proof || '')}</div>
+        <div class="task-reward">${money(s.reward)} · ${fmtShort(s.created_at)}</div>
+      </div>
+      <span class="badge ${(s.status||'pending').toLowerCase()}">${esc(s.status)}</span>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════
+   GLOBAL CHAT
+═══════════════════════════════════════ */
+let chatTimer = null;
+
+async function loadChat() {
+  const box = $('chatBox');
+  box.setAttribute('aria-live', 'polite');
+  try {
+    if (!box.querySelector('.chat-msg')) box.innerHTML = '<div class="empty-state">Loading messages...</div>';
+    const d = await api('/api/chat');
+    renderChat(d.messages || []);
+  } catch(err) {
+    box.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>${esc(err.message || 'Failed to load chat.')}</div>`;
+    toast('Failed to load chat', 'err');
+  }
+}
+
+function renderChat(messages) {
+  const box = $('chatBox');
+  box.setAttribute('aria-live', 'polite');
+  if (!messages.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div>No messages yet. Say hi!</div>';
+    return;
+  }
+  const me = currentUser ? currentUser.id : null;
+  box.innerHTML = messages.map(m => {
+    const mine = m.user_id === me;
+    const av = m.avatar
+      ? `<img src="${m.avatar}" alt="">`
+      : esc((m.name || m.username || 'U').charAt(0).toUpperCase());
+    const name = esc(m.name || m.username || 'Unknown');
+    const text = esc(m.message);
+    return `
+    <div class="chat-msg${mine ? ' mine' : ''}">
+      <div class="chat-av">${av}</div>
+      <div class="chat-bubble">
+        <div class="chat-name">${name}</div>
+        <div class="chat-text">${text}</div>
+        <div class="chat-time">${fmtShort(m.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+$('chatForm').onsubmit = async e => {
+  e.preventDefault();
+  const input = $('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  try {
+    await api('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: text })
+    });
+    await loadChat();
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+};
+
+// Auto-refresh chat every 5 seconds while logged in
+setInterval(() => {
+  if (currentUser && !$('pageChat').classList.contains('hidden')) {
+    loadChat();
+  }
+}, 5000);
+
+/* ═══════════════════════════════════════
+   AVATAR
+═══════════════════════════════════════ */
+function renderAvatar(container, avatar, name) {
+  const init = (name || 'U').charAt(0).toUpperCase();
+  container.innerHTML = avatar
+    ? `<img class="avatar-img" src="${avatar}" alt="">`
+    : init;
+}
+
+async function uploadAvatar(file) {
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = async () => {
+      try {
+        const d = await api('/api/avatar', {
+          method: 'POST',
+          body: JSON.stringify({ avatar: reader.result })
+        });
+        resolve(d);
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = () => reject(new Error('Could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+$('avatarInput').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    toast('Please choose an image file', 'err');
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    toast('Image too large (max 4MB)', 'err');
+    return;
+  }
+  try {
+    await uploadAvatar(file);
+    toast('Avatar updated!', 'ok');
+    await loadProfile();
+    // Update topbar + hero immediately
+    const d = await api('/api/profile');
+    const u = d.user;
+    renderAvatar($('topAvatar'), u.avatar, u.name);
+    renderAvatar($('heroAvatar'), u.avatar, u.name);
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+  e.target.value = '';
+};
+
+/* ═══════════════════════════════════════
+   PROFILE
+═══════════════════════════════════════ */
+async function loadProfile() {
+  try {
+    const d = await api('/api/profile');
+    const u = d.user;
+    renderAvatar($('profileAvatar'), u.avatar, u.name);
+    $('profileName').textContent   = u.name || '—';
+    $('profilePhone').textContent  = u.phone || '—';
+    $('profileStatusBadge').innerHTML = badgeHtml(u.status || 'active');
+    $('profileBalance').textContent  = money(u.balance);
+    $('profileStatus').innerHTML     = badgeHtml(u.status || 'active');
+    $('profileVerified').innerHTML   = u.verified
+      ? '<span style="color:var(--green3)">✔ Yes</span>'
+      : '<span style="color:var(--red4)">✗ No</span>';
+    $('profileInvCode').textContent   = u.invitation_code || '—';
+    $('profileReferrals').textContent = u.total_referrals || 0;
+    $('profileSince').textContent     = fmtShort(u.created_at);
+    $('profileLastLogin').textContent = fmtDate(u.last_login);
+  } catch(err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════
+   LOGOUT
+═══════════════════════════════════════ */
+$('logoutBtn').onclick = () => $('logoutModal').classList.remove('hidden');
+$('logoutModal').onclick = e => { if (e.target === $('logoutModal')) $('logoutModal').classList.add('hidden'); };
+$('confirmLogout').onclick = async () => {
+  $('logoutModal').classList.add('hidden');
+  try { await api('/api/logout', { method: 'POST' }); } catch {}
+  currentUser = null; dashboardData = null;
+  $('appShell').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');
+  $('loginPassword').value = '';
+  $('loginUsername').value = '';
+  switchTab('login');
+  toast('Logged out successfully');
+};
+
+/* Seasonal audio is local-only and never autoplayed. */
+(() => {
+  const audio = $('holidayAudio'), play = $('audioPlay'), mute = $('audioMute'), volume = $('audioVolume'), status = $('audioStatus');
+  if (!audio || !play || !mute || !volume) return;
+  audio.volume = Number(volume.value);
+  audio.addEventListener('canplay', () => {
+    [play, mute, volume].forEach(el => el.disabled = false);
+    status.textContent = 'Instrumental music ready. Playback starts after your click.';
+  }, { once: true });
+  audio.addEventListener('error', () => { status.textContent = 'Add a licensed instrumental file at public/assets/jingle-bells-instrumental.mp3 to enable music.'; });
+  play.onclick = async () => {
+    if (audio.paused) { try { await audio.play(); play.textContent = '⏸ Pause'; } catch { status.textContent = 'Click Play again to allow music in this browser.'; } }
+    else { audio.pause(); play.textContent = '▶ Play'; }
+  };
+  mute.onclick = () => { audio.muted = !audio.muted; mute.textContent = audio.muted ? '🔊 Unmute' : '🔇 Mute'; };
+  volume.oninput = () => { audio.volume = Number(volume.value); audio.muted = false; mute.textContent = '🔇 Mute'; };
+})();
+
+/* ═══════════════════════════════════════
+   AUTO-LOGIN
+═══════════════════════════════════════ */
+(async () => {
+  try {
+    const d = await api('/api/me');
+    if (d.loggedIn && d.user) await enterApp(d.user);
+  } catch {}
+})();
+</script>
+</body>
+</html>
