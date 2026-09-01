@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && npm rebuild better-sqlite3"
+    "buildCommand": "npm install && npm rebuild better-sqlite3 --build-from-source"
   },
   "deploy": {
     "startCommand": "node server.js",

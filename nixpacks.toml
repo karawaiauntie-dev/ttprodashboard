@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_24", "python3", "gcc", "gnumake"]
+nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake"]
 
 [phases.install]
-cmds = ["npm install", "npm rebuild better-sqlite3"]
+cmds = ["npm install", "npm rebuild better-sqlite3 --build-from-source"]
 
 [start]
 cmd = "node server.js"
