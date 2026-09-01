@@ -9,16 +9,13 @@ const db = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const sessionSecret =
-    process.env.SESSION_SECRET ||
-    "ttpro-development-session-secret-change-this-in-production";
+const sessionSecret = process.env.SESSION_SECRET;
 
-if (!process.env.SESSION_SECRET) {
-    console.warn(
-        "SESSION_SECRET not configured. Using a fallback development secret; set a real secret in production."
-    );
+if (!sessionSecret) {
+    throw new Error("SESSION_SECRET must be configured.");
 }
 
+app.set("trust proxy", 1);
 /* ========================================
    MIDDLEWARE
 ======================================== */
@@ -34,7 +31,7 @@ app.use(
 
         cookie: {
             httpOnly: true,
-            secure: false,
+            secure: "auto",
             maxAge: 30 * 60 * 1000
         }
     })
@@ -2519,7 +2516,7 @@ app.post(
    START SERVER
 ======================================== */
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log("");
     console.log("=================================");
     console.log(
