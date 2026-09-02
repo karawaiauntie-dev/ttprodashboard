@@ -1026,8 +1026,8 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 <div id="appShell" class="hidden">
 
   <header class="topbar">
-    <div class="topbar-logo">Team Potato</div>
-    <span class="topbar-suits">♠ ♥ ♦ ♣</span>
+    <div class="topbar-logo">Team Karawai</div>
+    <span class="topbar-suits">♚♜♝♞</span>
     <div class="topbar-avatar" id="topAvatar" onclick="switchPage('profile')">A</div>
   </header>
 
@@ -1065,18 +1065,27 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
         <div class="hero-copy"><div class="hero-kicker">WELCOME BACK</div><h1 id="heroName">Player</h1><p>Your premium TTPRO account overview</p></div>
         <div class="hero-balance"><span>Available balance</span><strong id="homeBalance">₱0.00</strong></div>
       </section>
+<div class="quick-actions">
 
-      <div class="quick-actions">
-        <button class="qa-btn qa-withdraw" onclick="switchPage('withdrawal')">
-          <span class="qa-icon"><span>💸</span></span>Withdraw
-        </button>
-        <button class="qa-btn qa-invite" onclick="switchPage('invite')">
-          <span class="qa-icon"><span>🎁</span></span>Invite
-        </button>
-        <button class="qa-btn qa-profile" onclick="switchPage('profile')">
-          <span class="qa-icon"><span>👤</span></span>Profile
-        </button>
-      </div>
+  <!-- Withdrawal -->
+  <button class="qa-btn qa-withdraw" onclick="switchPage('withdrawal')">
+    <span class="qa-icon">💸</span>
+    <span>Withdraw</span>
+  </button>
+
+  <!-- Invite -->
+  <button class="qa-btn qa-invite" onclick="switchPage('invite')">
+    <span class="qa-icon">🎁</span>
+    <span>Invite</span>
+  </button>
+
+  <!-- Profile -->
+  <button class="qa-btn qa-profile" onclick="switchPage('profile')">
+    <span class="qa-icon">👤</span>
+    <span>Profile</span>
+  </button>
+
+</div>
 
       <div class="settlement-summary-grid dashboard-summary-grid" aria-label="Account metrics">
         <div class="settlement-summary-card"><span class="summary-label">Cash</span><strong class="summary-value" id="homeTotalAmount">₱0.00</strong></div>
@@ -1290,24 +1299,56 @@ document.addEventListener("DOMContentLoaded", function () {
     </section>
 
     <!-- ── GLOBAL CHAT ── -->
-    <section id="pageChat" class="page-wrap hidden">
+<section id="pageChat" class="page-wrap hidden">
 
-      <div class="page-head">
+    <div class="page-head">
         <div class="page-title">🌎 Global Chat</div>
         <div class="page-sub">Talk with all TTPRO members</div>
-      </div>
+    </div>
 
-      <div class="card chat-card">
+    <div class="card chat-card">
+
         <div class="chat-box" id="chatBox">
-          <div class="empty-state"><div class="empty-icon">💬</div>Loading messages...</div>
-        </div>
-        <form id="chatForm" class="chat-form">
-          <input id="chatInput" type="text" placeholder="Type a message..." maxlength="500" autocomplete="off" required>
-          <button class="chat-send" type="submit">➤</button>
-        </form>
-      </div>
 
-    </section>
+            <!-- SAMPLE MESSAGE -->
+            <div class="chat-message">
+
+                <div class="message-user">
+                    Juan
+                </div>
+
+                <div class="message-text">
+                    Hello guys!
+                </div>
+
+                <div class="message-reactions">
+                    <button onclick="reactToMessage('message123', '❤️')">❤️</button>
+                    <button onclick="reactToMessage('message123', '👍')">👍</button>
+                    <button onclick="reactToMessage('message123', '😂')">😂</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <form id="chatForm" class="chat-form">
+            <input
+                id="chatInput"
+                type="text"
+                placeholder="Type a message..."
+                maxlength="500"
+                autocomplete="off"
+                required
+            >
+
+            <button class="chat-send" type="submit">➤</button>
+        </form>
+
+    </div>
+
+</section>
+
+
 
     <!-- ── EARN TASKS ── -->
     <section id="pageTasks" class="page-wrap hidden">
@@ -1435,28 +1476,283 @@ document.addEventListener("DOMContentLoaded", function () {
 
   </main>
 
-  <!-- Bottom Nav -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" id="navHome" onclick="switchPage('home')">
-      <span class="nav-icon">🏠</span>Home
-    </button>
-    <button class="nav-btn" id="navChat" onclick="switchPage('chat')">
-      <span class="nav-icon">💬</span>Chat
-    </button>
-    <button class="nav-btn" id="navWithdrawal" onclick="switchPage('withdrawal')">
-      <span class="nav-icon">💸</span>Withdraw
-    </button>
-    <button class="nav-btn" id="navTasks" onclick="switchPage('tasks')">
-      <span class="nav-icon">💼</span>Tasks
-    </button>
-    <button class="nav-btn" id="navInvite" onclick="switchPage('invite')">
-      <span class="nav-icon">🎁</span>Invite
-    </button>
-    <button class="nav-btn" id="navProfile" onclick="switchPage('profile')">
-      <span class="nav-icon">👤</span>Profile
-    </button>
-  </nav>
-</div>
+  <!-- Bottom Navigation -->
+<nav class="bottom-nav">
+
+  <button class="nav-item active" onclick="setActive(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5v-9z"/>
+      </svg>
+    </span>
+    <span class="nav-label">Home</span>
+  </button>
+
+  <button class="nav-item" onclick="setActive(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5c-1.3 0-2.5-.33-3.55-.92L4 19.5l1.42-4.22A7.45 7.45 0 0 1 5 11.5 7.5 7.5 0 1 1 20 11.5z"/>
+      </svg>
+    </span>
+    <span class="nav-label">Chat</span>
+  </button>
+
+  <button class="nav-item withdraw-btn" onclick="setActive(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="6" width="18" height="13" rx="2"/>
+        <path d="M3 10h18"/>
+        <circle cx="16.5" cy="14.5" r="1.5"/>
+      </svg>
+    </span>
+    <span class="nav-label">Withdraw</span>
+  </button>
+
+  <button class="nav-item" onclick="setActive(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7"/>
+        <path d="M12 3v13"/>
+        <path d="M7 8l5-5 5 5"/>
+        <path d="M3 8h18v4H3z"/>
+      </svg>
+    </span>
+    <span class="nav-label">Invite</span>
+  </button>
+
+  <button class="nav-item" onclick="setActive(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6"/>
+      </svg>
+    </span>
+    <span class="nav-label">Profile</span>
+  </button>
+
+</nav>
+
+<style>
+/* ================================
+   BOTTOM NAVIGATION
+================================ */
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 78px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  background: rgba(5, 17, 35, 0.97);
+
+  border-top: 1px solid rgba(80, 150, 255, 0.15);
+
+  box-shadow:
+    0 -8px 30px rgba(0, 0, 0, 0.35),
+    0 -1px 0 rgba(255,255,255,0.03);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  z-index: 9999;
+}
+
+
+/* NAV ITEM */
+
+.nav-item {
+  position: relative;
+
+  width: 20%;
+  height: 64px;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  color: #8193b4;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    color .25s ease,
+    transform .2s ease;
+}
+
+
+/* ICON */
+
+.nav-icon {
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform .25s ease,
+    filter .25s ease;
+}
+
+.nav-icon svg {
+  width: 25px;
+  height: 25px;
+
+  fill: none;
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  transition: all .25s ease;
+}
+
+
+/* LABEL */
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+
+  letter-spacing: .2px;
+
+  white-space: nowrap;
+
+  transition: all .25s ease;
+}
+
+
+/* ================================
+   ACTIVE
+================================ */
+
+.nav-item.active {
+  color: #4da3ff;
+}
+
+.nav-item.active .nav-icon {
+  transform: translateY(-2px) scale(1.05);
+
+  filter:
+    drop-shadow(0 0 7px rgba(52, 153, 255, .7));
+}
+
+.nav-item.active .nav-label {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+
+/* ACTIVE INDICATOR */
+
+.nav-item.active::before {
+  content: "";
+
+  position: absolute;
+
+  top: -8px;
+
+  width: 34px;
+  height: 3px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    90deg,
+    #20c8ff,
+    #397cff,
+    #814bff
+  );
+
+  box-shadow:
+    0 0 10px rgba(55, 145, 255, .8);
+}
+
+
+/* ================================
+   WITHDRAW HIGHLIGHT
+================================ */
+
+.withdraw-btn .nav-icon {
+  color: #5bb7ff;
+}
+
+.withdraw-btn .nav-label {
+  color: #a5b9d6;
+}
+
+
+/* ================================
+   TAP EFFECT
+================================ */
+
+.nav-item:active {
+  transform: scale(.92);
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+
+@media (max-width: 480px) {
+
+  .bottom-nav {
+    height: 76px;
+  }
+
+  .nav-item {
+    height: 62px;
+  }
+
+  .nav-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .nav-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+  }
+}
+</style>
+
+<script>
+function setActive(element) {
+
+  // Remove active from all buttons
+  document.querySelectorAll('.nav-item')
+    .forEach(item => {
+      item.classList.remove('active');
+    });
+
+  // Activate clicked button
+  element.classList.add('active');
+}
+</script>
+
 
 <!-- Logout Modal -->
 <div id="logoutModal" class="modal-overlay hidden">
@@ -1977,68 +2273,1037 @@ function renderTaskSubmissions(list) {
   `).join('');
 }
 
-/* ═══════════════════════════════════════
-   GLOBAL CHAT
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL CHAT + FACEBOOK STYLE REACTIONS
+═══════════════════════════════════════════════════════════════ */
+
 let chatTimer = null;
 
+/* Reaction state */
+let reactionTimer = null;
+let reactionLongPress = false;
+let reactionMessage = null;
+let reactionStartX = 0;
+let reactionStartY = 0;
+
+const REACTION_HOLD_TIME = 500;
+
+
+/* ═══════════════════════════════════════
+   LOAD CHAT
+═══════════════════════════════════════ */
+
 async function loadChat() {
+
   const box = $('chatBox');
+
+  if (!box) return;
+
   box.setAttribute('aria-live', 'polite');
+
   try {
-    if (!box.querySelector('.chat-msg')) box.innerHTML = '<div class="empty-state">Loading messages...</div>';
+
+    if (!box.querySelector('.chat-msg')) {
+
+      box.innerHTML =
+        '<div class="empty-state">Loading messages...</div>';
+
+    }
+
     const d = await api('/api/chat');
+
     renderChat(d.messages || []);
-  } catch(err) {
-    box.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>${esc(err.message || 'Failed to load chat.')}</div>`;
-    toast('Failed to load chat', 'err');
+
+  } catch (err) {
+
+    box.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        ${esc(err.message || 'Failed to load chat.')}
+      </div>
+    `;
+
+    toast(
+      'Failed to load chat',
+      'err'
+    );
+
   }
 }
+
+
+/* ═══════════════════════════════════════
+   RENDER CHAT
+═══════════════════════════════════════ */
 
 function renderChat(messages) {
+
   const box = $('chatBox');
-  box.setAttribute('aria-live', 'polite');
+
+  if (!box) return;
+
+  box.setAttribute(
+    'aria-live',
+    'polite'
+  );
+
+
+  /* EMPTY */
+
   if (!messages.length) {
-    box.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div>No messages yet. Say hi!</div>';
+
+    box.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        No messages yet. Say hi!
+      </div>
+    `;
+
     return;
   }
-  const me = currentUser ? currentUser.id : null;
-  box.innerHTML = messages.map(m => {
-    const mine = m.user_id === me;
-    const av = m.avatar
-      ? `<img src="${m.avatar}" alt="">`
-      : esc((m.name || m.username || 'U').charAt(0).toUpperCase());
-    const name = esc(m.name || m.username || 'Unknown');
-    const text = esc(m.message);
-    return `
-    <div class="chat-msg${mine ? ' mine' : ''}">
-      <div class="chat-av">${av}</div>
-      <div class="chat-bubble">
-        <div class="chat-name">${name}</div>
-        <div class="chat-text">${text}</div>
-        <div class="chat-time">${fmtShort(m.created_at)}</div>
-      </div>
-    </div>`;
-  }).join('');
-  box.scrollTop = box.scrollHeight;
+
+
+  const me =
+    currentUser
+      ? currentUser.id
+      : null;
+
+
+  box.innerHTML =
+    messages.map(m => {
+
+      const mine =
+        m.user_id === me;
+
+
+      /* AVATAR */
+
+      const av = m.avatar
+
+        ? `<img
+             src="${esc(m.avatar)}"
+             alt=""
+           >`
+
+        : esc(
+            (
+              m.name ||
+              m.username ||
+              'U'
+            )
+            .charAt(0)
+            .toUpperCase()
+          );
+
+
+      /* NAME */
+
+      const name =
+        esc(
+          m.name ||
+          m.username ||
+          'Unknown'
+        );
+
+
+      /* MESSAGE */
+
+      const text =
+        esc(m.message || '');
+
+
+      /* MESSAGE ID */
+
+      const messageId =
+        m.id || '';
+
+
+      return `
+
+        <div
+          class="chat-msg${mine ? ' mine' : ''}"
+          data-message-id="${messageId}"
+        >
+
+          <div class="chat-av">
+            ${av}
+          </div>
+
+
+          <div class="chat-bubble">
+
+            <div class="chat-name">
+              ${name}
+            </div>
+
+
+            <div class="chat-text">
+              ${text}
+            </div>
+
+
+            <div class="chat-time">
+              ${fmtShort(m.created_at)}
+            </div>
+
+
+            <!-- FACEBOOK STYLE REACTION BAR -->
+
+            <div class="chat-reaction-picker">
+
+              <button
+                type="button"
+                data-reaction="❤️"
+                aria-label="Love"
+              >❤️</button>
+
+              <button
+                type="button"
+                data-reaction="😂"
+                aria-label="Haha"
+              >😂</button>
+
+              <button
+                type="button"
+                data-reaction="😮"
+                aria-label="Wow"
+              >😮</button>
+
+              <button
+                type="button"
+                data-reaction="😢"
+                aria-label="Sad"
+              >😢</button>
+
+              <button
+                type="button"
+                data-reaction="😡"
+                aria-label="Angry"
+              >😡</button>
+
+              <button
+                type="button"
+                data-reaction="👍"
+                aria-label="Like"
+              >👍</button>
+
+            </div>
+
+
+            <!-- REACTIONS -->
+
+            <div class="chat-reactions"></div>
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join('');
+
+
+  /*
+   * Keep chat at bottom
+   */
+
+  box.scrollTop =
+    box.scrollHeight;
+
+
+  /*
+   * Enable long press reactions
+   */
+
+  initChatReactions();
 }
 
+
+/* ═══════════════════════════════════════
+   SEND CHAT
+═══════════════════════════════════════ */
+
 $('chatForm').onsubmit = async e => {
+
   e.preventDefault();
-  const input = $('chatInput');
-  const text = input.value.trim();
+
+  const input =
+    $('chatInput');
+
+  if (!input) return;
+
+  const text =
+    input.value.trim();
+
   if (!text) return;
+
   input.value = '';
+
+
   try {
-    await api('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message: text })
-    });
+
+    await api(
+      '/api/chat',
+      {
+        method: 'POST',
+
+        body: JSON.stringify({
+          message: text
+        })
+      }
+    );
+
+
     await loadChat();
-  } catch(err) {
-    toast(err.message, 'err');
+
+
+  } catch (err) {
+
+    toast(
+      err.message,
+      'err'
+    );
+
   }
+
 };
+
+
+/* ═══════════════════════════════════════
+   REACTION INITIALIZATION
+═══════════════════════════════════════ */
+
+function initChatReactions() {
+
+  const messages =
+    document.querySelectorAll(
+      '#chatBox .chat-msg'
+    );
+
+
+  messages.forEach(message => {
+
+    let startX = 0;
+    let startY = 0;
+
+
+    /* ═══════════════════════════
+       MOBILE TOUCH START
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'touchstart',
+      function(e) {
+
+        if (
+          e.touches.length !== 1
+        ) return;
+
+
+        const touch =
+          e.touches[0];
+
+
+        startX =
+          touch.clientX;
+
+        startY =
+          touch.clientY;
+
+
+        reactionStartX =
+          startX;
+
+        reactionStartY =
+          startY;
+
+
+        reactionMessage =
+          message;
+
+        reactionLongPress =
+          false;
+
+
+        clearTimeout(
+          reactionTimer
+        );
+
+
+        reactionTimer =
+          setTimeout(() => {
+
+            reactionLongPress =
+              true;
+
+
+            openReactionPicker(
+              message
+            );
+
+
+            /*
+             * Haptic feedback
+             */
+
+            if (
+              navigator.vibrate
+            ) {
+
+              navigator.vibrate(
+                [20]
+              );
+
+            }
+
+          }, REACTION_HOLD_TIME);
+
+      },
+      {
+        passive: true
+      }
+    );
+
+
+    /* ═══════════════════════════
+       MOBILE MOVE
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'touchmove',
+      function(e) {
+
+        if (
+          !reactionLongPress
+        ) {
+
+          const touch =
+            e.touches[0];
+
+
+          const moveX =
+            Math.abs(
+              touch.clientX -
+              startX
+            );
+
+
+          const moveY =
+            Math.abs(
+              touch.clientY -
+              startY
+            );
+
+
+          /*
+           * User is scrolling.
+           * Cancel long press.
+           */
+
+          if (
+            moveX > 12 ||
+            moveY > 12
+          ) {
+
+            clearTimeout(
+              reactionTimer
+            );
+
+          }
+
+          return;
+        }
+
+
+        /*
+         * Long press active:
+         * detect emoji
+         */
+
+        const touch =
+          e.touches[0];
+
+
+        highlightReaction(
+          message,
+          touch.clientX,
+          touch.clientY
+        );
+
+      },
+      {
+        passive: true
+      }
+    );
+
+
+    /* ═══════════════════════════
+       MOBILE TOUCH END
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'touchend',
+      function(e) {
+
+        clearTimeout(
+          reactionTimer
+        );
+
+
+        if (
+          !reactionLongPress
+        ) {
+
+          reactionMessage =
+            null;
+
+          return;
+
+        }
+
+
+        const touch =
+          e.changedTouches[0];
+
+
+        const button =
+          getReactionButton(
+            message,
+            touch.clientX,
+            touch.clientY
+          );
+
+
+        if (button) {
+
+          chooseReaction(
+            message,
+            button.dataset.reaction
+          );
+
+        }
+
+
+        closeReactionPicker(
+          message
+        );
+
+
+        reactionMessage =
+          null;
+
+        reactionLongPress =
+          false;
+
+      },
+      {
+        passive: true
+      }
+    );
+
+
+    /* ═══════════════════════════
+       TOUCH CANCEL
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'touchcancel',
+      function() {
+
+        clearTimeout(
+          reactionTimer
+        );
+
+
+        closeReactionPicker(
+          message
+        );
+
+
+        reactionMessage =
+          null;
+
+        reactionLongPress =
+          false;
+
+      },
+      {
+        passive: true
+      }
+    );
+
+
+    /* ═══════════════════════════
+       DESKTOP MOUSE DOWN
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'mousedown',
+      function(e) {
+
+        if (
+          e.button !== 0
+        ) return;
+
+
+        reactionMessage =
+          message;
+
+        reactionLongPress =
+          false;
+
+
+        reactionTimer =
+          setTimeout(() => {
+
+            reactionLongPress =
+              true;
+
+
+            openReactionPicker(
+              message
+            );
+
+          }, REACTION_HOLD_TIME);
+
+      }
+    );
+
+
+    /* ═══════════════════════════
+       DESKTOP MOUSE MOVE
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'mousemove',
+      function(e) {
+
+        if (
+          !reactionLongPress
+        ) return;
+
+
+        highlightReaction(
+          message,
+          e.clientX,
+          e.clientY
+        );
+
+      }
+    );
+
+
+    /* ═══════════════════════════
+       DESKTOP MOUSE UP
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'mouseup',
+      function(e) {
+
+        clearTimeout(
+          reactionTimer
+        );
+
+
+        if (
+          !reactionLongPress
+        ) {
+
+          return;
+
+        }
+
+
+        const button =
+          getReactionButton(
+            message,
+            e.clientX,
+            e.clientY
+          );
+
+
+        if (button) {
+
+          chooseReaction(
+            message,
+            button.dataset.reaction
+          );
+
+        }
+
+
+        closeReactionPicker(
+          message
+        );
+
+
+        reactionMessage =
+          null;
+
+        reactionLongPress =
+          false;
+
+      }
+    );
+
+
+    /* ═══════════════════════════
+       DESKTOP MOUSE LEAVE
+    ═══════════════════════════ */
+
+    message.addEventListener(
+      'mouseleave',
+      function() {
+
+        clearTimeout(
+          reactionTimer
+        );
+
+      }
+    );
+
+  });
+
+}
+
+
+/* ═══════════════════════════════════════
+   OPEN REACTION PICKER
+═══════════════════════════════════════ */
+
+function openReactionPicker(message) {
+
+  /*
+   * Close all other pickers
+   */
+
+  document
+    .querySelectorAll(
+      '#chatBox .chat-msg.reaction-open'
+    )
+    .forEach(item => {
+
+      if (
+        item !== message
+      ) {
+
+        item.classList.remove(
+          'reaction-open'
+        );
+
+      }
+
+    });
+
+
+  message.classList.add(
+    'reaction-open'
+  );
+
+}
+
+
+/* ═══════════════════════════════════════
+   CLOSE REACTION PICKER
+═══════════════════════════════════════ */
+
+function closeReactionPicker(message) {
+
+  if (!message) return;
+
+
+  message.classList.remove(
+    'reaction-open'
+  );
+
+
+  message
+    .querySelectorAll(
+      '.chat-reaction-picker button'
+    )
+    .forEach(button => {
+
+      button.classList.remove(
+        'reaction-hover'
+      );
+
+    });
+
+}
+
+
+/* ═══════════════════════════════════════
+   FIND EMOJI UNDER FINGER
+═══════════════════════════════════════ */
+
+function getReactionButton(
+  message,
+  x,
+  y
+) {
+
+  const buttons =
+    message.querySelectorAll(
+      '.chat-reaction-picker button'
+    );
+
+
+  for (
+    const button of buttons
+  ) {
+
+    const rect =
+      button.getBoundingClientRect();
+
+
+    /*
+     * Extra hit area makes
+     * mobile selection easier
+     */
+
+    const padding = 14;
+
+
+    if (
+
+      x >=
+        rect.left - padding &&
+
+      x <=
+        rect.right + padding &&
+
+      y >=
+        rect.top - padding &&
+
+      y <=
+        rect.bottom + padding
+
+    ) {
+
+      return button;
+
+    }
+
+  }
+
+
+  return null;
+}
+
+
+/* ═══════════════════════════════════════
+   HIGHLIGHT EMOJI WHILE SLIDING
+═══════════════════════════════════════ */
+
+function highlightReaction(
+  message,
+  x,
+  y
+) {
+
+  const selected =
+    getReactionButton(
+      message,
+      x,
+      y
+    );
+
+
+  const buttons =
+    message.querySelectorAll(
+      '.chat-reaction-picker button'
+    );
+
+
+  buttons.forEach(button => {
+
+    button.classList.remove(
+      'reaction-hover'
+    );
+
+  });
+
+
+  if (selected) {
+
+    selected.classList.add(
+      'reaction-hover'
+    );
+
+  }
+
+}
+
+
+/* ═══════════════════════════════════════
+   SELECT REACTION
+═══════════════════════════════════════ */
+
+function chooseReaction(
+  message,
+  emoji
+) {
+
+  const list =
+    message.querySelector(
+      '.chat-reactions'
+    );
+
+
+  if (!list) return;
+
+
+  /*
+   * Find existing reaction
+   */
+
+  let existing =
+    [...list.querySelectorAll(
+      '.chat-reaction'
+    )]
+    .find(
+      item =>
+        item.dataset.emoji === emoji
+    );
+
+
+  /*
+   * Existing reaction:
+   * increase count
+   */
+
+  if (existing) {
+
+    const oldCount =
+      parseInt(
+        existing.dataset.count ||
+        '0'
+      );
+
+
+    const newCount =
+      oldCount + 1;
+
+
+    existing.dataset.count =
+      newCount;
+
+
+    const number =
+      existing.querySelector(
+        '.reaction-number'
+      );
+
+
+    if (number) {
+
+      number.textContent =
+        newCount;
+
+    }
+
+
+    return;
+  }
+
+
+  /*
+   * Create new reaction
+   */
+
+  const reaction =
+    document.createElement(
+      'div'
+    );
+
+
+  reaction.className =
+    'chat-reaction';
+
+
+  reaction.dataset.emoji =
+    emoji;
+
+
+  reaction.dataset.count =
+    '1';
+
+
+  reaction.innerHTML = `
+
+    <span class="reaction-emoji">
+      ${emoji}
+    </span>
+
+    <span class="reaction-number">
+      1
+    </span>
+
+  `;
+
+
+  list.appendChild(
+    reaction
+  );
+
+}
+
+
+/* ═══════════════════════════════════════
+   CLOSE WHEN CLICKING OUTSIDE
+═══════════════════════════════════════ */
+
+document.addEventListener(
+  'touchstart',
+  function(e) {
+
+    if (
+      !e.target.closest(
+        '#chatBox .chat-msg'
+      )
+    ) {
+
+      document
+        .querySelectorAll(
+          '#chatBox .chat-msg.reaction-open'
+        )
+        .forEach(message => {
+
+          closeReactionPicker(
+            message
+          );
+
+        });
+
+    }
+
+  },
+  {
+    passive: true
+  }
+);
+
+
+/* ═══════════════════════════════════════
+   AUTO REFRESH CHAT
+═══════════════════════════════════════ */
+
+setInterval(() => {
+
+  if (
+    currentUser &&
+    $('pageChat') &&
+    !$('pageChat')
+      .classList
+      .contains('hidden')
+  ) {
+
+    loadChat();
+
+  }
+
+}, 5000);
 
 // Auto-refresh chat every 5 seconds while logged in
 setInterval(() => {
@@ -2046,6 +3311,8 @@ setInterval(() => {
     loadChat();
   }
 }, 5000);
+
+
 
 /* ═══════════════════════════════════════
    AVATAR
