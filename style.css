@@ -1,3 +1,7 @@
+/* ================================
+   LOGO GALLERY
+================================ */
+
 .logo-gallery {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -11,11 +15,13 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     padding: 8px;
-    transition: 0.2s;
+    transition: 0.2s ease;
 }
 
 .logo-item:hover {
@@ -29,7 +35,13 @@
     object-fit: contain;
 }
 
+
+/* ================================
+   LOGO GALLERY - MOBILE
+================================ */
+
 @media (max-width: 480px) {
+
     .logo-gallery {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -40,12 +52,18 @@
 }
 
 
+/* ================================
+   TASK ITEM
+================================ */
+
 .task-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     gap: 20px;
     padding: 18px 16px;
+
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -56,12 +74,14 @@
 
 .task-info h3 {
     margin: 0 0 6px;
+
     font-size: 14px;
     color: #fff;
 }
 
 .task-info p {
     margin: 3px 0;
+
     font-size: 12px;
     color: #9fb8ad;
 }
@@ -71,7 +91,11 @@
     font-weight: 700;
 }
 
-/* SUBMIT BUTTON */
+
+/* ================================
+   SUBMIT BUTTON
+================================ */
+
 .task-item .submit-btn {
     flex: 0 0 420px;
     width: 420px;
@@ -87,6 +111,7 @@
     );
 
     color: #fff;
+
     font-size: 15px;
     font-weight: 800;
 
@@ -104,12 +129,18 @@
 
 .task-item .submit-btn:hover {
     transform: translateY(-1px);
+
     box-shadow:
         0 10px 25px rgba(37, 99, 235, 0.35);
 }
 
-/* MOBILE */
+
+/* ================================
+   TASK MOBILE
+================================ */
+
 @media (max-width: 700px) {
+
     .task-item {
         flex-direction: column;
         align-items: stretch;
@@ -118,5 +149,116 @@
     .task-item .submit-btn {
         width: 100%;
         flex: none;
+    }
+}
+
+
+/* ================================
+   ANIMATED BOX
+================================ */
+
+.box {
+    position: relative;
+
+    width: 300px;
+    height: 180px;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #111;
+}
+
+
+/* ================================
+   ANIMATED BORDER
+================================ */
+
+.box::before {
+    content: "";
+
+    position: absolute;
+
+    width: 200%;
+    height: 200%;
+
+    top: -50%;
+    left: -50%;
+
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        transparent 25%,
+        #00e5ff 35%,
+        #2563eb 45%,
+        transparent 55%,
+        transparent 100%
+    );
+
+    animation: spin 3s linear infinite;
+
+    z-index: 0;
+}
+
+
+/* ================================
+   INNER BOX
+================================ */
+
+.box::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 3px;
+
+    background: #111;
+
+    border-radius: 14px;
+
+    z-index: 1;
+}
+
+
+/* ================================
+   BOX CONTENT
+================================ */
+
+.box > * {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* ================================
+   ANIMATION
+================================ */
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ================================
+   BOX MOBILE
+================================ */
+
+@media (max-width: 480px) {
+
+    .box {
+        width: 100%;
+        max-width: 300px;
+        height: 160px;
     }
 }

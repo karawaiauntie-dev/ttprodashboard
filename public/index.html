@@ -869,10 +869,80 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
   .page-wrap { padding: 22px 22px 84px; }
 }
 @media(prefers-reduced-motion:reduce){.logo-item,.dashboard-hero{animation:none!important}.logo-item:hover{transform:none}}
+
+/* ROTATING GLOW BORDER - FIXED */
+.qa-btn,
+.settlement-summary-card {
+    position: relative !important;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid transparent !important;
+}
+
+.qa-btn::before,
+.settlement-summary-card::before {
+    content: "";
+    position: absolute;
+    inset: -70%;
+    z-index: 0;
+    pointer-events: none;
+
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg 225deg,
+        #00e5ff 265deg,
+        #2563eb 305deg,
+        #7c3aed 335deg,
+        transparent 360deg
+    );
+
+    animation: dashboardGlowSpin 3s linear infinite;
+}
+
+.qa-btn::after,
+.settlement-summary-card::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    z-index: 1;
+    pointer-events: none;
+
+    background: inherit;
+    border-radius: inherit;
+}
+
+.qa-btn > *,
+.settlement-summary-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+.qa-btn:hover,
+.settlement-summary-card:hover {
+    box-shadow:
+        0 0 18px rgba(0, 229, 255, 0.28),
+        0 0 30px rgba(124, 92, 255, 0.22) !important;
+}
+
+@keyframes dashboardGlowSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qa-btn::before,
+    .settlement-summary-card::before {
+        animation: none;
+    }
+}
 </style>
 </head>
 <body>
-<audio id="holidayAudio" preload="auto" loop><source src="/jinglebell.mp3" type="audio/mpeg"></audio>
 <div class="snow-layer" aria-hidden="true"></div>
 <div class="page-video-bg is-visible" aria-hidden="true" id="bgVideoLayer"></div>
 <div class="page-video-overlay is-visible" aria-hidden="true" id="bgVideoOverlay"></div>
@@ -975,18 +1045,18 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
           <span class="platforms-hint">Join Now!</span>
         </div>
         <div class="logo-gallery" aria-label="TTPRO promotion platforms">
-          <div class="logo-item"><img src="/k1.jpg" alt="Platform logo 1" loading="lazy"></div>
-          <div class="logo-item"><img src="/k2.jpg" alt="Platform logo 2" loading="lazy"></div>
-          <div class="logo-item"><img src="/k3.jpg" alt="Platform logo 3" loading="lazy"></div>
-          <div class="logo-item"><img src="/k4.jpg" alt="Platform logo 4" loading="lazy"></div>
-          <div class="logo-item"><img src="/k5.jpg" alt="Platform logo 5" loading="lazy"></div>
-          <div class="logo-item"><img src="/k6.jpg" alt="Platform logo 6" loading="lazy"></div>
-          <div class="logo-item"><img src="/k7.jpg" alt="Platform logo 7" loading="lazy"></div>
-          <div class="logo-item"><img src="/k8.jpg" alt="Platform logo 8" loading="lazy"></div>
-          <div class="logo-item"><img src="/k9.jpg" alt="Platform logo 9" loading="lazy"></div>
-          <div class="logo-item"><img src="/k10.jpg" alt="Platform logo 10" loading="lazy"></div>
-          <div class="logo-item"><img src="/k11.jpg" alt="Platform logo 11" loading="lazy"></div>
-          <div class="logo-item"><img src="/k12.jpg" alt="Platform logo 12" loading="lazy"></div>
+          <div class="logo-item"><img src="k1.jpg" alt="Platform logo 1" loading="lazy"></div>
+          <div class="logo-item"><img src="k2.jpg" alt="Platform logo 2" loading="lazy"></div>
+          <div class="logo-item"><img src="k3.jpg" alt="Platform logo 3" loading="lazy"></div>
+          <div class="logo-item"><img src="k4.jpg" alt="Platform logo 4" loading="lazy"></div>
+          <div class="logo-item"><img src="k5.jpg" alt="Platform logo 5" loading="lazy"></div>
+          <div class="logo-item"><img src="k6.jpg" alt="Platform logo 6" loading="lazy"></div>
+          <div class="logo-item"><img src="k7.jpg" alt="Platform logo 7" loading="lazy"></div>
+          <div class="logo-item"><img src="k8.jpg" alt="Platform logo 8" loading="lazy"></div>
+          <div class="logo-item"><img src="k9.jpg" alt="Platform logo 9" loading="lazy"></div>
+          <div class="logo-item"><img src="k10.jpg" alt="Platform logo 10" loading="lazy"></div>
+          <div class="logo-item"><img src="k11.jpg" alt="Platform logo 11" loading="lazy"></div>
+          <div class="logo-item"><img src="k12.jpg" alt="Platform logo 12" loading="lazy"></div>
         </div>
       </section>
 
@@ -1034,6 +1104,10 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
     </button>
   </div>
 
+  <audio id="holidayAudio" preload="auto" loop>
+    <source src="/jinglebell.mp3" type="audio/mpeg">
+  </audio>
+
 </div>
 
 <script>
@@ -1045,42 +1119,57 @@ document.addEventListener("DOMContentLoaded", function () {
   const bgVideoOverlay = document.getElementById("bgVideoOverlay");
   const toggleBackgroundBtn = document.getElementById("toggleBackgroundBtn");
 
-  const setStatus = (text) => { if (status) status.textContent = text; };
-  const setPlayLabel = () => {
-    if (playBtn && audio) playBtn.textContent = audio.paused ? "▶ Play" : "⏸ Pause";
-  };
+  if (audio) {
+    audio.volume = 0.35;
+    audio.loop = true;
+  }
+
   const setBackgroundVisible = (visible) => {
     if (bgVideoLayer) bgVideoLayer.classList.toggle("is-visible", visible);
     if (bgVideoOverlay) bgVideoOverlay.classList.toggle("is-visible", visible);
   };
 
-  if (audio) {
-    audio.volume = 0.35;
-    audio.loop = true;
-    audio.addEventListener("canplay", () => setStatus("Seasonal music ready 🎄"));
-    audio.addEventListener("play", () => { setPlayLabel(); setStatus("Playing seasonal music 🎄"); });
-    audio.addEventListener("pause", () => { setPlayLabel(); setStatus("Music paused"); });
-    audio.addEventListener("error", () => setStatus("Music file not found"));
-  }
-
   setBackgroundVisible(true);
+
+  if (audio) {
+    audio.addEventListener("canplay", function () {
+    status.textContent = "Seasonal music ready 🎄";
+
+    audio.play().then(function () {
+      playBtn.textContent = "⏸ Pause";
+      status.textContent = "Playing seasonal music 🎄";
+    }).catch(function () {
+      status.textContent = "Click play to start the music 🎄";
+    });
+  });
+
+    audio.addEventListener("error", function () {
+      status.textContent = "❌ Cannot load jinglebell.mp3";
+      console.error("Cannot load:", audio.currentSrc);
+    });
+  }
 
   if (playBtn && audio) {
     playBtn.addEventListener("click", async function () {
-      try {
-        if (audio.paused) await audio.play();
-        else audio.pause();
-        setPlayLabel();
-      } catch (e) {
-        console.error(e);
-        setStatus("Click again to play the music");
+      if (audio.paused) {
+        try {
+          await audio.play();
+          playBtn.textContent = "⏸ Pause";
+          status.textContent = "Playing seasonal music 🎄";
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        audio.pause();
+        playBtn.textContent = "▶ Play";
+        status.textContent = "Music paused";
       }
     });
   }
 
-  if (toggleBackgroundBtn) {
+  if (toggleBackgroundBtn && bgVideoLayer) {
     toggleBackgroundBtn.addEventListener("click", function () {
-      const visible = !(bgVideoLayer && bgVideoLayer.classList.contains("is-visible"));
+      const visible = !bgVideoLayer.classList.contains("is-visible");
       setBackgroundVisible(visible);
     });
   }
@@ -1088,7 +1177,13 @@ document.addEventListener("DOMContentLoaded", function () {
   if (audio && playBtn) {
     document.addEventListener("click", async function () {
       if (audio.paused) {
-        try { await audio.play(); } catch (_) {}
+        try {
+          await audio.play();
+          playBtn.textContent = "⏸ Pause";
+          status.textContent = "Playing seasonal music 🎄";
+        } catch (e) {
+          console.error(e);
+        }
       }
     }, { once: true });
   }
@@ -1415,25 +1510,14 @@ function toast(msg, type = '') {
 }
 
 async function api(url, opts = {}) {
-  let r;
-  try {
-    r = await fetch(url, {
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-      ...opts
-    });
-  } catch {
-    throw new Error('Unable to reach the server. Please refresh and try again.');
-  }
-
+  const r = await fetch(url, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts
+  });
   let d = {};
-  const contentType = r.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    try { d = await r.json(); } catch {}
-  }
-  if (!r.ok) {
-    throw new Error(d.message || `Request failed (${r.status}). Please try again.`);
-  }
+  try { d = await r.json(); } catch {}
+  if (!r.ok) throw new Error(d.message || 'Request failed');
   return d;
 }
 
