@@ -481,6 +481,28 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .chat-av img { width: 100%; height: 100%; object-fit: cover; }
 .chat-bubble { background:#fff; color:#172033; border:1px solid #cbd5e1; border-radius:14px 14px 14px 4px; padding:10px 13px; min-width:84px; box-shadow:0 5px 16px rgba(0,0,0,.14); overflow-wrap:anywhere; }
 .chat-msg.mine .chat-bubble { background:#2563eb; color:#fff; border-color:#7aa7ff; border-radius:14px 14px 4px 14px; }
+.chat-bubble { position:relative; user-select:none; -webkit-user-select:none; }
+.chat-msg { -webkit-touch-callout:none; }
+.chat-reaction-picker {
+  position:absolute; z-index:20; left:0; bottom:calc(100% + 8px);
+  display:none; align-items:center; gap:4px; padding:6px 8px;
+  border:1px solid #cbd5e1; border-radius:999px; background:#fff;
+  box-shadow:0 10px 28px rgba(15,23,42,.24); white-space:nowrap;
+  transform-origin:bottom left;
+}
+.chat-msg.mine .chat-reaction-picker { left:auto; right:0; transform-origin:bottom right; }
+.chat-msg.reaction-open .chat-reaction-picker { display:flex; animation:reactionPickerIn .16s ease-out; }
+.chat-reaction-picker button {
+  width:34px; height:34px; padding:0; border:0; border-radius:50%;
+  background:transparent; font-size:21px; line-height:1; cursor:pointer;
+  transition:transform .12s ease, background .12s ease;
+}
+.chat-reaction-picker button:hover,
+.chat-reaction-picker button.reaction-hover { background:#e0edff; transform:scale(1.2); }
+@keyframes reactionPickerIn { from { opacity:0; transform:scale(.82); } to { opacity:1; transform:scale(1); } }
+.chat-reactions { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.chat-reaction { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border:1px solid #cbd5e1; border-radius:999px; background:#f8fafc; color:#172033; font-size:12px; }
+.chat-msg.mine .chat-reaction { background:#dbeafe; border-color:#bfdbfe; }
 .chat-name { font-size:11px; font-weight:800; color:#1d4ed8; margin-bottom:3px; }
 .chat-msg.mine .chat-name { color: #dbe7ff; text-align: right; }
 .chat-text { color:inherit; font-size:13px; line-height:1.5; overflow-wrap:anywhere; word-break:break-word; }
@@ -2532,6 +2554,17 @@ function initChatReactions() {
 
   messages.forEach(message => {
 
+    message.querySelectorAll('.chat-reaction-picker button').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        chooseReaction(message, button.dataset.reaction);
+        closeReactionPicker(message);
+        reactionMessage = null;
+        reactionLongPress = false;
+      });
+    });
+
     let startX = 0;
     let startY = 0;
 
@@ -2711,35 +2744,10 @@ function initChatReactions() {
         }
 
 
-        const touch =
-          e.changedTouches[0];
-
-
-        const button =
-          getReactionButton(
-            message,
-            touch.clientX,
-            touch.clientY
-          );
-
-
-        if (button) {
-
-          chooseReaction(
-            message,
-            button.dataset.reaction
-          );
-
-        }
-
-
-        closeReactionPicker(
-          message
-        );
-
-
+        // Keep the picker open after the hold so the user can tap an emoji.
+        // The picker button click handler performs the actual selection.
         reactionMessage =
-          null;
+          message;
 
         reactionLongPress =
           false;
@@ -2864,31 +2872,10 @@ function initChatReactions() {
         }
 
 
-        const button =
-          getReactionButton(
-            message,
-            e.clientX,
-            e.clientY
-          );
-
-
-        if (button) {
-
-          chooseReaction(
-            message,
-            button.dataset.reaction
-          );
-
-        }
-
-
-        closeReactionPicker(
-          message
-        );
-
-
+        // Keep the picker open after the hold so the user can click an emoji.
+        // The picker button click handler performs the actual selection.
         reactionMessage =
-          null;
+          message;
 
         reactionLongPress =
           false;
