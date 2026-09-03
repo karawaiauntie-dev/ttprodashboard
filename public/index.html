@@ -613,8 +613,28 @@ body:has(#authScreen:not(.hidden)) { overflow: hidden; }
     radial-gradient(circle at 88% 100%, rgba(47,158,104,.2), transparent 46%),
     linear-gradient(145deg, rgba(20,70,56,.98), rgba(9,42,33,.98));
   box-shadow: 0 12px 30px rgba(0,0,0,.2), 0 0 24px rgba(255,217,120,.12);
+  animation: karawaiMessageGlow 4s ease-in-out infinite;
 }
-.karawai-message::before { content:''; position:absolute; inset:5px; border:1px solid rgba(223,83,96,.58); border-radius:13px; pointer-events:none; }
+.karawai-message::before {
+  content:'';
+  position:absolute;
+  inset:5px;
+  border:2px solid rgba(223,83,96,.58);
+  border-radius:13px;
+  pointer-events:none;
+  animation: karawaiBorderGlow 3.6s ease-in-out infinite;
+}
+@keyframes karawaiBorderGlow {
+  0%, 100% { border-color: rgba(223,83,96,.72); box-shadow: inset 0 0 12px rgba(223,83,96,.08), 0 0 8px rgba(223,83,96,.16); }
+  50% { border-color: rgba(255,217,120,.92); box-shadow: inset 0 0 16px rgba(255,217,120,.12), 0 0 18px rgba(255,217,120,.3); }
+}
+@keyframes karawaiMessageGlow {
+  0%, 100% { box-shadow: 0 12px 30px rgba(0,0,0,.2), 0 0 18px rgba(223,83,96,.12); }
+  50% { box-shadow: 0 14px 34px rgba(0,0,0,.24), 0 0 28px rgba(255,217,120,.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .karawai-message, .karawai-message::before { animation: none; }
+}
 .karawai-message-kicker { margin:0 0 7px; color:#f0c040; font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; }
 .karawai-message h2 { margin:0 0 8px; color:#fff3d0; font-size:clamp(19px,4vw,25px); line-height:1.15; }
 .karawai-message p { max-width:680px; margin:0 0 8px; color:#e9f5ed; font-size:13px; line-height:1.7; }
