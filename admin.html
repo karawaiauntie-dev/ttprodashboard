@@ -36,16 +36,17 @@ button{cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(37,99,235,.75);outline-offset:2px}
 .hidden{display:none!important}
 
-/* Modern blue admin theme */
-:root{--bg:#0a1628;--bg2:#15233d;--panel:#1a2a4a;--panel2:#0f1f3a;--border:#2563eb;--border2:#3b82f6;--gold:#2563eb;--gold2:#60a5fa;--gold3:#1e40af;--red:#c0392b;--red2:#e74c3c;--red3:#ff6b6b;--green:#10b981;--green2:#34d399;--green3:#6ee7b7;--text:#f4f7fb;--muted:#a5b4c4;--muted2:#718397}
-body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96) 100%)}
-.topbar{background:rgba(10,20,35,.96);border-color:var(--border2)}
-.nav-tabs{background:rgba(20,30,50,.96);border-color:var(--border)}
-.stat-card,.card,.modal-box,.login-card{background:linear-gradient(135deg,rgba(20,30,50,.95) 0%, rgba(15,25,45,.95) 100%);border-color:var(--border)}
-.table th{background:rgba(10,20,35,.5);color:var(--gold2)}
-.group input,.cash-form textarea,#notifUser,#notifMsg,#taskDesc{background:rgba(20,30,50,.5)!important;border-color:var(--border)!important}
-.btn-gold{background:linear-gradient(135deg,#2563eb 0%, #3b82f6 100%);color:#fff}
-.modal-overlay{background:rgba(10,20,35,.82)}
+/* Premium emerald and champagne admin theme */
+:root{--bg:#061b16;--bg2:#0b2a22;--panel:#10382d;--panel2:#092a21;--border:#28624f;--border2:#3d8066;--gold:#d5a63a;--gold2:#ffe08a;--gold3:#a97b1f;--red:#a8323d;--red2:#e05a64;--red3:#ff9a9f;--green:#1f9d67;--green2:#45c985;--green3:#9ee4b9;--text:#fff8e7;--muted:#b8cdbf;--muted2:#789586}
+body{background:radial-gradient(circle at 12% 0%,rgba(213,166,58,.12),transparent 35%),linear-gradient(135deg,#061b16 0%,#0b2a22 55%,#092018 100%)}
+.topbar{background:rgba(6,27,22,.96);border-color:var(--border2)}
+.nav-tabs{background:rgba(9,42,33,.96);border-color:var(--border)}
+.stat-card,.card,.modal-box,.login-card{background:linear-gradient(135deg,rgba(16,56,45,.97) 0%,rgba(9,42,33,.97) 100%);border-color:var(--border2);box-shadow:0 14px 35px rgba(0,0,0,.18)}
+.table th{background:rgba(6,27,22,.7);color:var(--gold2)}
+.table tbody tr:hover td{background:rgba(213,166,58,.06)}
+.group input,.cash-form textarea,#notifUser,#notifMsg,#taskDesc{background:rgba(6,27,22,.62)!important;border-color:var(--border2)!important}
+.btn-gold{background:linear-gradient(135deg,#a97b1f 0%,#f0c040 55%,#d5a63a 100%);color:#132218}
+.modal-overlay{background:rgba(2,14,10,.84)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 
@@ -166,7 +167,7 @@ body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96
 .page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
 
 /* ── Stat Cards ── */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .stat-card{
   background:var(--panel);border:1px solid var(--border2);
   border-radius:var(--radius);padding:18px;
@@ -363,6 +364,7 @@ body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96
       <div class="stat-card"><div class="s-label">Total Users</div><div class="s-val gold" id="sTotal">—</div></div>
       <div class="stat-card"><div class="s-label">Verified</div><div class="s-val green" id="sVerified">—</div></div>
       <div class="stat-card"><div class="s-label">Frozen</div><div class="s-val red" id="sFrozen">—</div></div>
+      <div class="stat-card"><div class="s-label">Active Now</div><div class="s-val green" id="sActiveNow">—</div></div>
       <div class="stat-card"><div class="s-label">Total Balance</div><div class="s-val blue" id="sTotalBal">—</div></div>
     </div>
 
@@ -387,6 +389,7 @@ body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96
               <th>Balance</th>
               <th>Verified</th>
               <th>Status</th>
+              <th>Activity</th>
               <th>Last Login</th>
               <th>Last IP</th>
               <th>Device</th>
@@ -609,6 +612,8 @@ body{background:linear-gradient(135deg, rgba(10,20,35,.96) 0%, rgba(20,30,45,.96
 /* ═══════════ UTILS ═══════════ */
 const $ = id => document.getElementById(id);
 let allUsers = [];
+let adminLiveSource = null;
+let adminRefreshTimer = null;
 let cashTargetUser = null;
 let confirmCallback = null;
 
@@ -679,6 +684,7 @@ $('loginForm').onsubmit = async e => {
     $('adminShell').classList.remove('hidden');
     await loadUsers();
     await populateNotifUsers();
+    startAdminLiveUpdates();
   } catch(err) {
     $('loginErr').textContent = err.message;
     btn.textContent = 'Login to Admin Panel'; btn.disabled = false;
@@ -689,6 +695,7 @@ $('loginForm').onsubmit = async e => {
 $('logoutBtn').onclick = () => {
   confirm('Logout', 'Are you sure you want to logout from the admin panel?', async () => {
     try { await api('/api/admin/logout', { method:'POST' }); } catch {}
+    stopAdminLiveUpdates();
     $('adminShell').classList.add('hidden');
     $('loginScreen').classList.remove('hidden');
     $('adminUser').value = '';
@@ -711,16 +718,16 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 });
 
 /* ═══════════ USERS ═══════════ */
-async function loadUsers() {
-  $('usersBody').innerHTML = '<tr><td colspan="10"><div class="empty">Loading users…</div></td></tr>';
+async function loadUsers(showToast = true) {
+  if (showToast) $('usersBody').innerHTML = '<tr><td colspan="11"><div class="empty">Loading users…</div></td></tr>';
   try {
     const d = await api('/api/admin/users');
     allUsers = d.users || [];
     renderUsers(allUsers);
     updateStats(allUsers);
-    toast('Users loaded', 'ok');
+    if (showToast) toast('Users loaded', 'ok');
   } catch(err) {
-    toast(err.message, 'err');
+    if (showToast) toast(err.message, 'err');
   }
 }
 
@@ -728,14 +735,40 @@ function updateStats(users) {
   $('sTotal').textContent = users.length;
   $('sVerified').textContent = users.filter(u => u.verified).length;
   $('sFrozen').textContent = users.filter(u => u.status === 'frozen').length;
+  $('sActiveNow').textContent = users.filter(u => u.is_active).length;
   const total = users.reduce((s, u) => s + (Number(u.balance) || 0), 0);
   $('sTotalBal').textContent = money(total);
+}
+
+function stopAdminLiveUpdates() {
+  if (adminLiveSource) adminLiveSource.close();
+  adminLiveSource = null;
+  clearTimeout(adminRefreshTimer);
+  clearInterval(adminRefreshTimer);
+}
+
+function startAdminLiveUpdates() {
+  stopAdminLiveUpdates();
+  clearInterval(adminRefreshTimer);
+  if (window.EventSource) {
+    adminLiveSource = new EventSource('/api/live');
+    adminLiveSource.addEventListener('refresh', () => {
+      clearTimeout(adminRefreshTimer);
+      adminRefreshTimer = setTimeout(() => loadUsers(false), 80);
+    });
+    adminLiveSource.onerror = () => {
+      clearTimeout(adminRefreshTimer);
+      adminRefreshTimer = setTimeout(() => loadUsers(false), 5000);
+    };
+  } else {
+    adminRefreshTimer = setInterval(() => loadUsers(false), 5000);
+  }
 }
 
 function renderUsers(users) {
   const body = $('usersBody');
   if (!users.length) {
-    body.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="empty-icon">👤</div>No users found.</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="11"><div class="empty"><div class="empty-icon">👤</div>No users found.</div></td></tr>`;
     return;
   }
   body.innerHTML = users.map(u => {
@@ -750,6 +783,7 @@ function renderUsers(users) {
       <td><strong style="color:var(--green3)">${money(u.balance)}</strong></td>
       <td>${u.verified ? '<span class="pill verified">✓ Yes</span>' : '<span class="pill no">No</span>'}</td>
       <td><span class="pill ${u.status==='frozen'?'frozen':'active'}">${esc(u.status||'active')}</span></td>
+      <td style="white-space:nowrap"><span class="pill ${u.is_active ? 'active' : 'no'}">${u.is_active ? '● Online' : '○ Offline'}</span><div style="color:var(--muted2);font-size:11px;margin-top:3px">${u.last_seen ? fmtDate(u.last_seen) : 'No activity yet'}</div></td>
       <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(u.last_login)}</td>
       <td>
         ${u.last_ip
@@ -1161,6 +1195,7 @@ $('taskForm').onsubmit = async e => {
       $('adminShell').classList.remove('hidden');
       await loadUsers();
       await populateNotifUsers();
+      startAdminLiveUpdates();
     }
   } catch {}
 })();

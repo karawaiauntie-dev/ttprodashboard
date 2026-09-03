@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -492,7 +492,7 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
   transform-origin:bottom left;
 }
 .chat-msg.mine .chat-reaction-picker { left:auto; right:0; transform-origin:bottom right; }
-.chat-msg.reaction-open .chat-reaction-picker { display:flex; animation:reactionPickerIn .16s ease-out; }
+.chat-msg.reaction-open .chat-reaction-picker { display:flex; animation:reactionPickerIn .1000s ease-out; }
 .chat-reaction-picker button {
   width:34px; height:34px; padding:0; border:0; border-radius:50%;
   background:transparent; font-size:21px; line-height:1; cursor:pointer;
@@ -1070,29 +1070,35 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
     <!-- ── HOME ── -->
     <section id="pageHome" class="page-wrap">
 
-      <section class="platforms-section">
-        <div class="platforms-heading">
-          <div>
-            <div class="platforms-kicker">PROMOTION HUB</div>
-            <h2>TTPRO Gaming Platforms</h2>
-          </div>
-          <span class="platforms-hint">Join Now!</span>
-        </div>
-        <div class="logo-gallery" aria-label="TTPRO promotion platforms">
-          <div class="logo-item"><img src="k1.jpg" alt="Platform logo 1" loading="lazy"></div>
-          <div class="logo-item"><img src="k2.jpg" alt="Platform logo 2" loading="lazy"></div>
-          <div class="logo-item"><img src="k3.jpg" alt="Platform logo 3" loading="lazy"></div>
-          <div class="logo-item"><img src="k4.jpg" alt="Platform logo 4" loading="lazy"></div>
-          <div class="logo-item"><img src="k5.jpg" alt="Platform logo 5" loading="lazy"></div>
-          <div class="logo-item"><img src="k6.jpg" alt="Platform logo 6" loading="lazy"></div>
-          <div class="logo-item"><img src="k7.jpg" alt="Platform logo 7" loading="lazy"></div>
-          <div class="logo-item"><img src="k8.jpg" alt="Platform logo 8" loading="lazy"></div>
-          <div class="logo-item"><img src="k9.jpg" alt="Platform logo 9" loading="lazy"></div>
-          <div class="logo-item"><img src="k10.jpg" alt="Platform logo 10" loading="lazy"></div>
-          <div class="logo-item"><img src="k11.jpg" alt="Platform logo 11" loading="lazy"></div>
-          <div class="logo-item"><img src="k12.jpg" alt="Platform logo 12" loading="lazy"></div>
-        </div>
-      </section>
+      <nav class="christmas message"
+      <div class="message-box"
+      <h3> Merry Christmas and Happy New Year </h3>
+
+      <p>
+        I’m truly grateful that, after working together for such a long time,
+      we’ve reached another wonderful Christmas season together.
+      </p>
+
+      <p>
+         As we continue our journey, let’s keep growing, improving, and building
+      a stronger team—always ready to support and help individuals increase
+      their daily income and develop their own teams.
+      </p>
+
+    <p>
+       Thank you for your continued trust, support, and hard work.
+      May we achieve even greater success together in the coming year.
+    </p>
+
+    <strong> 
+            Once again, Merry Christmas and Happy New Year, everyone!
+    </strong>
+  </div>
+</nav>
+
+</section>
+
+  
 
       <section class="hero dashboard-hero" aria-label="Account summary">
         <div class="hero-avatar" id="heroAvatar">A</div>
@@ -1152,85 +1158,82 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
   </audio>
 
 </div>
-
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const audio = document.getElementById("holidayAudio");
-  const playBtn = document.getElementById("audioPlay");
-  const status = document.getElementById("audioStatus");
-  const bgVideoLayer = document.getElementById("bgVideoLayer");
-  const bgVideoOverlay = document.getElementById("bgVideoOverlay");
-  const toggleBackgroundBtn = document.getElementById("toggleBackgroundBtn");
+/* -- Seasonal Background Music -- */
+(function () {
+  var audio   = null;
+  var playBtn = null;
+  var status  = null;
+  var _autoPlayed = false;
 
-  if (audio) {
+  function init() {
+    audio   = document.getElementById("holidayAudio");
+    playBtn = document.getElementById("audioPlay");
+    status  = document.getElementById("audioStatus");
+
+    if (!audio || !playBtn || !status) return;
+
     audio.volume = 0.35;
-    audio.loop = true;
-  }
+    audio.loop   = true;
+    audio.preload = 'auto';
+    audio.load();
 
-  const setBackgroundVisible = (visible) => {
-    if (bgVideoLayer) bgVideoLayer.classList.toggle("is-visible", visible);
-    if (bgVideoOverlay) bgVideoOverlay.classList.toggle("is-visible", visible);
-  };
-
-  setBackgroundVisible(true);
-
-  if (audio) {
-    audio.addEventListener("canplay", function () {
-    status.textContent = "Seasonal music ready 🎄";
-
-    audio.play().then(function () {
-      playBtn.textContent = "⏸ Pause";
-      status.textContent = "Playing seasonal music 🎄";
-    }).catch(function () {
-      status.textContent = "Click play to start the music 🎄";
+    /* Update UI when music actually starts/pauses */
+    audio.addEventListener("play", function () {
+      playBtn.textContent = "Pause";
+      status.textContent  = "Playing seasonal music";
     });
-  });
+
+    audio.addEventListener("pause", function () {
+      playBtn.textContent = "Play";
+      status.textContent  = "Music paused";
+    });
+
+    audio.addEventListener("canplay", function () {
+      if (status.textContent === "Loading music...") {
+        status.textContent = "Click Play to start the music";
+      }
+    }, { once: true });
 
     audio.addEventListener("error", function () {
-      status.textContent = "❌ Cannot load jinglebell.mp3";
-      console.error("Cannot load:", audio.currentSrc);
+      status.textContent = "Could not load jinglebell.mp3";
+      console.error("Audio load error:", audio.currentSrc);
     });
-  }
 
-  if (playBtn && audio) {
+    /* Play / Pause button */
     playBtn.addEventListener("click", async function () {
+      if (!audio) return;
       if (audio.paused) {
-        try {
-          await audio.play();
-          playBtn.textContent = "⏸ Pause";
-          status.textContent = "Playing seasonal music 🎄";
-        } catch (e) {
+        try { await audio.play(); }
+        catch (e) {
+          status.textContent = "Playback blocked. Try again.";
           console.error(e);
         }
       } else {
         audio.pause();
-        playBtn.textContent = "▶ Play";
-        status.textContent = "Music paused";
       }
     });
+
+    /* Auto-play on first user gesture anywhere on the page */
+    function tryAutoPlay() {
+      if (_autoPlayed || !audio || !audio.paused) return;
+      _autoPlayed = true;
+      audio.play().catch(function () { /* silently ignore */ });
+    }
+    document.addEventListener("click",      tryAutoPlay, { once: true, capture: true });
+    document.addEventListener("touchstart", tryAutoPlay, { once: true, capture: true, passive: true });
+    document.addEventListener("keydown",    tryAutoPlay, { once: true, capture: true });
+
+    status.textContent = "Click Play to start the music";
   }
 
-  if (toggleBackgroundBtn && bgVideoLayer) {
-    toggleBackgroundBtn.addEventListener("click", function () {
-      const visible = !bgVideoLayer.classList.contains("is-visible");
-      setBackgroundVisible(visible);
-    });
+  /* Run as soon as DOM is ready */
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
-
-  if (audio && playBtn) {
-    document.addEventListener("click", async function () {
-      if (audio.paused) {
-        try {
-          await audio.play();
-          playBtn.textContent = "⏸ Pause";
-          status.textContent = "Playing seasonal music 🎄";
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    }, { once: true });
-  }
-});
+})();
 </script>
 
 
@@ -1777,6 +1780,9 @@ function setActive(element) {
 const $ = id => document.getElementById(id);
 let currentUser = null;
 let dashboardData = null;
+let liveSource = null;
+let liveRefreshTimer = null;
+let heartbeatTimer = null;
 
 function toast(msg, type = '') {
   const el = $('toast');
@@ -1787,14 +1793,26 @@ function toast(msg, type = '') {
 }
 
 async function api(url, opts = {}) {
-  const r = await fetch(url, {
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-    ...opts
-  });
+  let r;
+  try {
+    r = await fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+      ...opts
+    });
+  } catch {
+    throw new Error('Unable to reach the server. Please refresh and try again.');
+  }
+
+  const contentType = r.headers.get('content-type') || '';
   let d = {};
-  try { d = await r.json(); } catch {}
-  if (!r.ok) throw new Error(d.message || 'Request failed');
+  if (contentType.includes('application/json')) {
+    try { d = await r.json(); } catch { d = {}; }
+  } else {
+    const text = await r.text().catch(() => '');
+    if (text) d.message = text.slice(0, 160);
+  }
+  if (!r.ok) throw new Error(d.message || `Request failed (${r.status}). Please try again.`);
   return d;
 }
 
@@ -1938,6 +1956,38 @@ async function enterApp(user) {
   $('heroName').textContent    = user.name || 'Player';
   switchPage('home');
   await loadDashboard();
+  startLiveUpdates();
+}
+
+function startLiveUpdates() {
+  if (liveSource) liveSource.close();
+  clearInterval(heartbeatTimer);
+  clearTimeout(liveRefreshTimer);
+
+  const heartbeat = () => api('/api/heartbeat', { method: 'POST' }).catch(() => {});
+  heartbeat();
+  heartbeatTimer = setInterval(heartbeat, 30000);
+
+  if (window.EventSource) {
+    liveSource = new EventSource('/api/live');
+    liveSource.addEventListener('refresh', () => {
+      if (document.hidden) return;
+      clearTimeout(liveRefreshTimer);
+      liveRefreshTimer = setTimeout(() => loadDashboard(), 80);
+    });
+    liveSource.onerror = () => {
+      // The heartbeat and a slower polling fallback keep the dashboard current.
+      clearTimeout(liveRefreshTimer);
+      liveRefreshTimer = setTimeout(() => loadDashboard(), 5000);
+    };
+  }
+}
+
+function stopLiveUpdates() {
+  if (liveSource) liveSource.close();
+  liveSource = null;
+  clearInterval(heartbeatTimer);
+  clearTimeout(liveRefreshTimer);
 }
 
 /* ═══════════════════════════════════════
@@ -3333,6 +3383,7 @@ $('logoutModal').onclick = e => { if (e.target === $('logoutModal')) $('logoutMo
 $('confirmLogout').onclick = async () => {
   $('logoutModal').classList.add('hidden');
   try { await api('/api/logout', { method: 'POST' }); } catch {}
+  stopLiveUpdates();
   currentUser = null; dashboardData = null;
   $('appShell').classList.add('hidden');
   $('authScreen').classList.remove('hidden');
@@ -3342,23 +3393,7 @@ $('confirmLogout').onclick = async () => {
   toast('Logged out successfully');
 };
 
-/* Seasonal audio is local-only and never autoplayed. */
-(() => {
-  const audio = $('holidayAudio'), play = $('audioPlay'), mute = $('audioMute'), volume = $('audioVolume'), status = $('audioStatus');
-  if (!audio || !play || !mute || !volume) return;
-  audio.volume = Number(volume.value);
-  audio.addEventListener('canplay', () => {
-    [play, mute, volume].forEach(el => el.disabled = false);
-    status.textContent = 'Instrumental music ready. Playback starts after your click.';
-  }, { once: true });
-  audio.addEventListener('error', () => { status.textContent = 'Add a licensed instrumental file at public/assets/jingle-bells-instrumental.mp3 to enable music.'; });
-  play.onclick = async () => {
-    if (audio.paused) { try { await audio.play(); play.textContent = '⏸ Pause'; } catch { status.textContent = 'Click Play again to allow music in this browser.'; } }
-    else { audio.pause(); play.textContent = '▶ Play'; }
-  };
-  mute.onclick = () => { audio.muted = !audio.muted; mute.textContent = audio.muted ? '🔊 Unmute' : '🔇 Mute'; };
-  volume.oninput = () => { audio.volume = Number(volume.value); audio.muted = false; mute.textContent = '🔇 Mute'; };
-})();
+
 
 /* ═══════════════════════════════════════
    AUTO-LOGIN

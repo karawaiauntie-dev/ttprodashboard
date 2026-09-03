@@ -124,6 +124,35 @@ function requireAdmin(req, res, next) {
     next();
 }
 
+const liveClients = new Set();
+const ACTIVE_WINDOW_MS = 2 * 60 * 1000;
+
+function isRecentlyActive(lastSeen) {
+    return Boolean(lastSeen && Date.now() - Date.parse(lastSeen) <= ACTIVE_WINDOW_MS);
+}
+
+function getActiveUserCount() {
+    const cutoff = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+    return db.prepare(`
+        SELECT COUNT(*) AS count
+        FROM users
+        WHERE last_seen IS NOT NULL
+          AND last_seen >= ?
+          AND status != 'frozen'
+    `).get(cutoff).count;
+}
+
+function broadcastLive(event, payload = {}) {
+    const message = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
+    for (const client of liveClients) {
+        try {
+            client.res.write(message);
+        } catch {
+            liveClients.delete(client);
+        }
+    }
+}
+
 /* ========================================
    REGISTER
 ======================================== */
@@ -346,6 +375,8 @@ app.post("/api/register", (req, res) => {
         };
 
         req.session.user = user;
+        db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
+            .run(new Date().toISOString(), user.id);
 
         res.json({
             success: true,
@@ -475,6 +506,8 @@ app.post("/api/login", (req, res) => {
             username: user.username,
             name: user.name
         };
+        db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
+            .run(new Date().toISOString(), user.id);
 
         res.json({
             success: true,
@@ -548,6 +581,47 @@ app.get("/api/me", (req, res) => {
         user: req.session.user
     });
 });
+
+/* ========================================
+   LIVE HEARTBEAT / SERVER-SENT EVENTS
+======================================== */
+
+app.post("/api/heartbeat", requireUser, (req, res) => {
+    const lastSeen = new Date().toISOString();
+    db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
+        .run(lastSeen, req.session.user.id);
+    broadcastLive("refresh", {
+        reason: "heartbeat",
+        activeNow: getActiveUserCount(),
+        at: lastSeen
+    });
+    res.json({ success: true, last_seen: lastSeen });
+});
+
+app.get("/api/live", (req, res) => {
+    if (!req.session.user && !req.session.admin) {
+        return res.status(401).end();
+    }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const client = { res, userId: req.session.user?.id || null, admin: Boolean(req.session.admin) };
+    liveClients.add(client);
+    res.write(`event: connected\ndata: ${JSON.stringify({ connected: true })}\n\n`);
+
+    req.on("close", () => liveClients.delete(client));
+});
+
+setInterval(() => {
+    broadcastLive("refresh", {
+        reason: "heartbeat-window",
+        activeNow: getActiveUserCount(),
+        at: new Date().toISOString()
+    });
+}, 3000).unref();
 
 /* ========================================
    LOGOUT
@@ -1306,17 +1380,23 @@ app.get(
                         last_ip,
                         last_device,
                         last_login,
+                        last_seen,
                         invitation_code,
                         total_referrals,
                         created_at
                     FROM users
                     ORDER BY id DESC
                 `)
-                .all();
+                .all()
+                .map(user => ({
+                    ...user,
+                    is_active: isRecentlyActive(user.last_seen)
+                }));
 
             res.json({
                 success: true,
-                users
+                users,
+                activeNow: users.filter(user => user.is_active).length
             });
 
         } catch (error) {
@@ -1357,6 +1437,7 @@ app.get(
                         last_ip,
                         last_device,
                         last_login,
+                        last_seen,
                         invitation_code,
                         total_referrals,
                         created_at,
@@ -2353,8 +2434,37 @@ app.post('/api/admin/task-completions/:id/review', requireAdmin, (req, res) => {
    GLOBAL CHAT
 ======================================== */
 
+const ALLOWED_REACTIONS = new Set([
+    "like",
+    "love",
+    "laugh",
+    "wow",
+    "sad",
+    "angry"
+]);
+
+function getChatReactions(messageId, userId) {
+    const counts = db.prepare(`
+        SELECT reaction, COUNT(*) AS count
+        FROM chat_reactions
+        WHERE chat_message_id = ?
+        GROUP BY reaction
+    `).all(messageId).reduce((result, row) => {
+        result[row.reaction] = row.count;
+        return result;
+    }, {});
+
+    const mine = db.prepare(`
+        SELECT reaction
+        FROM chat_reactions
+        WHERE chat_message_id = ? AND user_id = ?
+    `).get(messageId, userId);
+
+    return { counts, mine: mine?.reaction || null };
+}
+
 app.get(
-    "/api/chat",
+    "/api/chat", 
     requireUser,
     (req, res) => {
         try {
@@ -2375,9 +2485,14 @@ app.get(
                 `)
                 .all();
 
+            const enrichedMessages = messages.map(message => ({
+                ...message,
+                reactions: getChatReactions(message.id, req.session.user.id)
+            }));
+
             res.json({
                 success: true,
-                messages: messages.reverse()
+                messages: enrichedMessages.reverse()
             });
 
         } catch (error) {
@@ -2447,6 +2562,61 @@ app.post(
                 message:
                     "Unable to send message."
             });
+        }
+    }
+);
+
+app.post(
+    "/api/chat/:messageId/reaction",
+    requireUser,
+    (req, res) => {
+        try {
+            const messageId = Number(req.params.messageId);
+            const reaction = String(req.body.reaction || "").trim().toLowerCase();
+
+            if (!Number.isInteger(messageId) || messageId <= 0) {
+                return res.status(400).json({ success: false, message: "Invalid message." });
+            }
+
+            if (!ALLOWED_REACTIONS.has(reaction)) {
+                return res.status(400).json({ success: false, message: "Invalid reaction." });
+            }
+
+            const message = db.prepare("SELECT id FROM chat_messages WHERE id = ?").get(messageId);
+            if (!message) {
+                return res.status(404).json({ success: false, message: "Message not found." });
+            }
+
+            const userId = req.session.user.id;
+            const existing = db.prepare(`
+                SELECT reaction
+                FROM chat_reactions
+                WHERE chat_message_id = ? AND user_id = ?
+            `).get(messageId, userId);
+            const now = new Date().toISOString();
+
+            if (existing?.reaction === reaction) {
+                db.prepare(`
+                    DELETE FROM chat_reactions
+                    WHERE chat_message_id = ? AND user_id = ?
+                `).run(messageId, userId);
+            } else {
+                db.prepare(`
+                    INSERT INTO chat_reactions
+                        (chat_message_id, user_id, reaction, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(chat_message_id, user_id) DO UPDATE SET
+                        reaction = excluded.reaction,
+                        updated_at = excluded.updated_at
+                `).run(messageId, userId, reaction, now, now);
+            }
+
+            const reactions = getChatReactions(messageId, userId);
+            broadcastLive("refresh", { reason: "chat-reaction", messageId, at: now });
+            res.json({ success: true, reactions });
+        } catch (error) {
+            console.error("CHAT REACTION ERROR:", error);
+            res.status(500).json({ success: false, message: "Unable to save reaction." });
         }
     }
 );

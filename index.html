@@ -487,7 +487,14 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .chat-text { color:inherit; font-size:13px; line-height:1.5; overflow-wrap:anywhere; word-break:break-word; }
 .chat-time { font-size:10px; color:#64748b; margin-top:5px; }
 .chat-msg.mine .chat-time { color:#dbeafe; text-align:right; }
-@media(max-width:520px){.chat-msg{max-width:94%}.chat-bubble{padding:9px 11px}.chat-text{font-size:13px}}
+.chat-reactions { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+.chat-reaction-btn { border:1px solid rgba(37,99,235,.28); border-radius:999px; padding:4px 8px; background:rgba(255,255,255,.84); color:#1e3a5f; font-size:11px; cursor:pointer; transition:.18s ease; }
+.chat-reaction-btn:hover, .chat-reaction-btn.selected { border-color:#d5a63a; background:#fff4c7; color:#7a4b00; transform:translateY(-1px); }
+.chat-reaction-count { font-size:10px; font-weight:800; margin-left:2px; }
+.chat-msg.mine .chat-reaction-btn { background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.4); color:#fff; }
+.chat-msg.mine .chat-reaction-btn:hover, .chat-msg.mine .chat-reaction-btn.selected { background:#ffe08a; border-color:#ffe08a; color:#5b3a00; }
+@media(max-width:520px){.chat-msg{max-width:94%}.chat-bubble{padding:9px 11px}.chat-text{font-size:13px}.chat-reaction-btn{padding:4px 7px}}
+
 .chat-form {
   display: flex; gap: 8px; padding: 10px;
   border-top: 1px solid var(--border);
@@ -561,23 +568,73 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
   .summary-value { font-size:18px; }
 }
 
-/* ── Promotion platforms carousel ── */
+/* ── Karawai Christmas message ── */
 .platforms-section { margin: 0 0 14px; }
-.platforms-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:10px; }
-.platforms-kicker { color:#f0c040; font-size:10px; font-weight:800; letter-spacing:1.8px; }
-.platforms-heading h2 { color:#f8fafc; font-size:18px; margin-top:3px; }
-.platforms-hint { color:#aebed0; font-size:11px; white-space:nowrap; }
-.platforms-carousel { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 10px; scrollbar-width:thin; }
-.logo-gallery { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:12px 0 14px; }
-.logo-item { aspect-ratio:1; display:grid; place-items:center; padding:10px; border:1px solid rgba(124,92,255,.45); border-radius:15px; background:linear-gradient(145deg,rgba(30,36,78,.9),rgba(15,20,48,.95)); box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2); animation:logoIn .55s ease both,logoGlow 3.5s ease-in-out infinite; }
-.logo-item:nth-child(2n){animation-delay:.08s}.logo-item:nth-child(3n){animation-delay:.16s}.logo-item:hover{transform:translateY(-3px) scale(1.03);border-color:#8d7bff;box-shadow:0 0 22px rgba(69,162,255,.45),0 0 30px rgba(124,92,255,.25)}
-.logo-item img { max-width:100%; max-height:100%; object-fit:contain; border-radius:10px; }
-@keyframes logoIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes logoGlow{0%,100%{box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2)}50%{box-shadow:0 0 0 1px rgba(141,123,255,.38),0 0 24px rgba(69,162,255,.2)}}
-.platform-card { flex:0 0 190px; min-height:104px; scroll-snap-align:start; padding:14px; border-radius:14px; border:1px solid #34465a; background:linear-gradient(145deg,#182534,#101923); color:#f8fafc; box-shadow:0 8px 18px rgba(0,0,0,.16); }
-.platform-card strong { display:block; margin-top:9px; font-size:13px; }
-.platform-card small { display:block; color:#8fa3b8; margin-top:4px; font-size:10px; }
-.platform-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; color:#f0c040; border:1px solid #b88620; font-size:11px; font-weight:900; }
+.karawai-message {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 22px 20px;
+  border: 1px solid rgba(255, 217, 120, .78);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(223, 83, 96, .22), transparent 42%),
+    radial-gradient(circle at 88% 100%, rgba(40, 155, 98, .2), transparent 46%),
+    linear-gradient(145deg, rgba(20, 70, 56, .98), rgba(9, 42, 33, .98));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .2), 0 0 24px rgba(255, 217, 120, .12);
+  isolation: isolate;
+}
+.karawai-message::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(223, 83, 96, .58);
+  border-radius: 13px;
+  pointer-events: none;
+  z-index: -1;
+}
+.karawai-message::after {
+  content: '✦  ❄  ✦';
+  position: absolute;
+  top: 9px;
+  right: 16px;
+  color: rgba(255, 217, 120, .72);
+  font-size: 13px;
+  letter-spacing: 4px;
+}
+.karawai-message-kicker {
+  margin: 0 0 7px;
+  color: #f0c040;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+.karawai-message h2 {
+  margin: 0 0 8px;
+  color: #fff3d0;
+  font-size: clamp(19px, 4vw, 25px);
+  line-height: 1.15;
+}
+.karawai-message p {
+  max-width: 680px;
+  margin: 0;
+  color: #e9f5ed;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.karawai-message strong { color: #ffd978; }
+.karawai-message-signoff {
+  display: block;
+  margin-top: 12px;
+  color: #9ee4b9;
+  font-size: 12px;
+  font-weight: 700;
+}
+@media (max-width: 599px) {
+  .karawai-message { padding: 20px 16px; }
+  .karawai-message::after { right: 12px; font-size: 11px; }
+}
 /* ═══════════════════════════════════════
    HOME PAGE
 ═══════════════════════════════════════ */
@@ -707,6 +764,13 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .notif-title { font-size: 13px; font-weight: 700; }
 .notif-msg   { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
 .notif-time  { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+.notif-item { padding: 13px 12px; margin: 0 -4px; border: 1px solid rgba(61,128,102,.42); border-radius: 12px; background: linear-gradient(135deg, rgba(16,56,45,.72), rgba(9,42,33,.52)); transition: .2s ease; }
+.notif-item + .notif-item { margin-top: 8px; }
+.notif-item:hover { border-color: rgba(255,217,120,.58); transform: translateY(-1px); }
+.notif-icon { background: linear-gradient(135deg, rgba(213,166,58,.24), rgba(223,83,96,.16)); border: 1px solid rgba(255,217,120,.38); }
+.notif-title { color: #fff3d0; }
+.notif-msg { color: #d6e8dc; }
+.notif-time { color: #9ab8a5; }
 
 /* ═══════════════════════════════════════
    WITHDRAWAL PAGE
@@ -874,12 +938,12 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .hero-kicker { color:#8fb8ff; font-size:10px; font-weight:800; letter-spacing:1.5px; }
 .dashboard-hero h1 { color:#fff; font-size:22px; margin:2px 0; }.dashboard-hero p,.hero-balance span { color:#b9c7e9; font-size:12px; }.hero-balance { text-align:right; }.hero-balance strong { display:block; color:#e5dcff; font-size:22px; margin-top:3px; }.dashboard-summary-grid { width:min(100%,480px); margin:12px auto; grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:center; }.dashboard-summary-grid .settlement-summary-card { background:linear-gradient(145deg,rgba(28,31,83,.96),rgba(17,29,67,.96)); border-color:rgba(69,162,255,.35); min-width:0; }.dashboard-summary-grid .summary-label { color:#a8b8e5; font-size:11px; }.dashboard-summary-grid .summary-value { color:#d9d2ff; }
 @keyframes premiumPulse { 0%,100% { box-shadow:0 0 0 1px rgba(69,162,255,.18),0 0 20px rgba(124,92,255,.12); } 50% { box-shadow:0 0 0 1px rgba(141,123,255,.5),0 0 34px rgba(69,162,255,.24); } }
-@media(max-width:599px){.logo-gallery{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.dashboard-hero{grid-template-columns:auto 1fr}.hero-balance{grid-column:1/-1;text-align:left}.dashboard-hero h1{font-size:19px}}
+@media(max-width:599px){.dashboard-hero{grid-template-columns:auto 1fr}.hero-balance{grid-column:1/-1;text-align:left}.dashboard-hero h1{font-size:19px}}
 @media(min-width:600px) {
   .quick-actions { grid-template-columns: repeat(3, 1fr); }
   .page-wrap { padding: 22px 22px 84px; }
 }
-@media(prefers-reduced-motion:reduce){.logo-item,.dashboard-hero{animation:none!important}.logo-item:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.dashboard-hero{animation:none!important}}
 </style>
 </head>
 <body>
@@ -977,28 +1041,15 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
     <!-- ── HOME ── -->
     <section id="pageHome" class="page-wrap">
 
-      <section class="platforms-section">
-        <div class="platforms-heading">
-          <div>
-            <div class="platforms-kicker">PROMOTION HUB</div>
-            <h2>TTPRO Gaming Platforms</h2>
-          </div>
-          <span class="platforms-hint">Join Now!</span>
-        </div>
-        <div class="logo-gallery" aria-label="TTPRO promotion platforms">
-          <div class="logo-item"><img src="k1.jpg" alt="Platform logo 1" loading="lazy"></div>
-          <div class="logo-item"><img src="k2.jpg" alt="Platform logo 2" loading="lazy"></div>
-          <div class="logo-item"><img src="k3.jpg" alt="Platform logo 3" loading="lazy"></div>
-          <div class="logo-item"><img src="k4.jpg" alt="Platform logo 4" loading="lazy"></div>
-          <div class="logo-item"><img src="k5.jpg" alt="Platform logo 5" loading="lazy"></div>
-          <div class="logo-item"><img src="k6.jpg" alt="Platform logo 6" loading="lazy"></div>
-          <div class="logo-item"><img src="k7.jpg" alt="Platform logo 7" loading="lazy"></div>
-          <div class="logo-item"><img src="k8.jpg" alt="Platform logo 8" loading="lazy"></div>
-          <div class="logo-item"><img src="k9.jpg" alt="Platform logo 9" loading="lazy"></div>
-          <div class="logo-item"><img src="k10.jpg" alt="Platform logo 10" loading="lazy"></div>
-          <div class="logo-item"><img src="k11.jpg" alt="Platform logo 11" loading="lazy"></div>
-          <div class="logo-item"><img src="k12.jpg" alt="Platform logo 12" loading="lazy"></div>
-        </div>
+      <section class="platforms-section karawai-message" aria-labelledby="karawaiMessageTitle">
+        <div class="karawai-message-kicker">Karawai's Christmas Message</div>
+        <h2 id="karawaiMessageTitle">🎄 Merry Christmas, Team Karawai! 🎁</h2>
+        <p>
+          May this season bring peace to your heart, joy to your family, and new hope for the year ahead.
+          Thank you for being part of our community. Let us continue to support one another, celebrate every
+          small victory, and share the Christmas spirit with kindness and gratitude.
+        </p>
+        <span class="karawai-message-signoff">With warm wishes, <strong>Team Karawai</strong> ✨</span>
       </section>
 
       <section class="hero dashboard-hero" aria-label="Account summary">
@@ -1426,6 +1477,9 @@ document.addEventListener("DOMContentLoaded", function () {
 const $ = id => document.getElementById(id);
 let currentUser = null;
 let dashboardData = null;
+let heartbeatTimer = null;
+let liveSource = null;
+let liveRefreshTimer = null;
 
 function toast(msg, type = '') {
   const el = $('toast');
@@ -1583,11 +1637,45 @@ $('loginForm').onsubmit = async e => {
   btn.textContent = 'Login to Account'; btn.disabled = false;
 };
 
+function stopLiveUpdates() {
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  if (liveRefreshTimer) clearTimeout(liveRefreshTimer);
+  if (liveSource) liveSource.close();
+  heartbeatTimer = null;
+  liveRefreshTimer = null;
+  liveSource = null;
+}
+
+function startLiveUpdates() {
+  stopLiveUpdates();
+  const sendHeartbeat = () => {
+    if (!currentUser) return;
+    api('/api/heartbeat', { method: 'POST' }).catch(() => {});
+  };
+  sendHeartbeat();
+  heartbeatTimer = setInterval(sendHeartbeat, 30000);
+  if (!window.EventSource) return;
+  liveSource = new EventSource('/api/live');
+  liveSource.addEventListener('refresh', () => {
+    if (!currentUser || liveRefreshTimer) return;
+    liveRefreshTimer = setTimeout(() => {
+      liveRefreshTimer = null;
+      loadDashboard();
+      if (!$('pageChat').classList.contains('hidden')) loadChat();
+    }, 180);
+  });
+  liveSource.onerror = () => {
+    if (liveSource) liveSource.close();
+    liveSource = null;
+  };
+}
+
 /* ═══════════════════════════════════════
    ENTER APP
 ═══════════════════════════════════════ */
 async function enterApp(user) {
   currentUser = user;
+  startLiveUpdates();
   const init = (user.name || 'P').charAt(0).toUpperCase();
   $('authScreen').classList.add('hidden');
   $('verifyScreen').classList.add('hidden');
@@ -1932,6 +2020,36 @@ async function loadChat() {
   }
 }
 
+const reactionOptions = [
+  ['like', '👍'],
+  ['love', '❤️'],
+  ['laugh', '😂'],
+  ['wow', '😮'],
+  ['sad', '😢'],
+  ['angry', '😡']
+];
+
+async function reactToMessage(messageId, reaction) {
+  try {
+    await api(`/api/chat/${messageId}/reaction`, {
+      method: 'POST',
+      body: JSON.stringify({ reaction })
+    });
+    await loadChat();
+  } catch (err) {
+    toast(err.message || 'Unable to save reaction.', 'err');
+  }
+}
+
+function renderReactionButtons(message) {
+  const reactions = message.reactions || { counts: {}, mine: null };
+  return `<div class="chat-reactions" aria-label="Reactions">${reactionOptions.map(([key, emoji]) => {
+    const count = Number(reactions.counts?.[key] || 0);
+    const selected = reactions.mine === key ? ' selected' : '';
+    return `<button type="button" class="chat-reaction-btn${selected}" onclick="reactToMessage(${Number(message.id)}, '${key}')" aria-label="React ${key}">${emoji}${count ? `<span class="chat-reaction-count">${count}</span>` : ''}</button>`;
+  }).join('')}</div>`;
+}
+
 function renderChat(messages) {
   const box = $('chatBox');
   box.setAttribute('aria-live', 'polite');
@@ -1954,6 +2072,7 @@ function renderChat(messages) {
         <div class="chat-name">${name}</div>
         <div class="chat-text">${text}</div>
         <div class="chat-time">${fmtShort(m.created_at)}</div>
+        ${renderReactionButtons(m)}
       </div>
     </div>`;
   }).join('');
@@ -2068,6 +2187,7 @@ $('logoutModal').onclick = e => { if (e.target === $('logoutModal')) $('logoutMo
 $('confirmLogout').onclick = async () => {
   $('logoutModal').classList.add('hidden');
   try { await api('/api/logout', { method: 'POST' }); } catch {}
+  stopLiveUpdates();
   currentUser = null; dashboardData = null;
   $('appShell').classList.add('hidden');
   $('authScreen').classList.remove('hidden');

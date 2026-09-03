@@ -44,6 +44,7 @@ db.exec(`
         last_ip TEXT,
         last_device TEXT,
         last_login TEXT,
+        last_seen TEXT,
         balance REAL NOT NULL DEFAULT 0,
         invitation_code TEXT UNIQUE,
         referred_by INTEGER,
@@ -284,6 +285,36 @@ db.exec(`
 `);
 
 /* ========================================
+   CHAT REACTIONS
+======================================== */
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS chat_reactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        chat_message_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        reaction TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+
+        UNIQUE (chat_message_id, user_id),
+
+        FOREIGN KEY (chat_message_id)
+            REFERENCES chat_messages(id)
+            ON DELETE CASCADE,
+
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
+    )
+`);
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_chat_reactions_message
+    ON chat_reactions (chat_message_id)
+`);
+
+/* ========================================
    USERS MIGRATIONS
 ======================================== */
 
@@ -337,6 +368,13 @@ const migrations = [
         sql: `
             ALTER TABLE users
             ADD COLUMN last_login TEXT
+        `
+    },
+    {
+        column: "last_seen",
+        sql: `
+            ALTER TABLE users
+            ADD COLUMN last_seen TEXT
         `
     },
     {
