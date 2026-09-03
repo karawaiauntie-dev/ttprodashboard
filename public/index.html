@@ -169,15 +169,21 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
    AUTH SCREENS
 ═══════════════════════════════════════ */
 .auth-screen {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  min-height: 100dvh;
   background:
-    radial-gradient(ellipse at 30% 0%,  #182b42 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 100%, #211b36 0%, transparent 55%),
-    var(--bg);
+    radial-gradient(circle at 18% 0%, rgba(223,83,96,.3), transparent 34%),
+    radial-gradient(circle at 88% 100%, rgba(47,158,104,.28), transparent 38%),
+    linear-gradient(145deg, #061b16 0%, #0b2a22 52%, #07131f 100%);
   display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  position: relative; overflow: hidden;
+  padding: clamp(14px, 4vw, 30px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+body:has(#authScreen:not(.hidden)) { overflow: hidden; }
+#appShell.hidden { display: none !important; }
 
 /* decorative corner chips */
 .auth-screen::before, .auth-screen::after {
@@ -188,15 +194,26 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .auth-screen::after  { bottom: -20px; right: -20px; transform: rotate(180deg); }
 
 .auth-card {
-  width: 100%; max-width: 420px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 22px;
-  padding: 34px 30px;
-  box-shadow: var(--shadow);
+  width: 100%; max-width: 440px;
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  background: linear-gradient(145deg, rgba(16,56,45,.98), rgba(9,42,33,.98));
+  border: 1px solid rgba(255,217,120,.78);
+  border-radius: 24px;
+  padding: clamp(22px, 5vw, 34px) clamp(18px, 5vw, 30px);
+  box-shadow: 0 0 0 4px rgba(223,83,96,.12), 0 24px 70px rgba(0,0,0,.42), 0 0 28px rgba(255,217,120,.16);
   animation: fadeUp .35s ease;
   position: relative; z-index: 1;
 }
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(223,83,96,.56);
+  border-radius: 18px;
+  pointer-events: none;
+}
+.auth-card > * { position: relative; z-index: 1; }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -583,23 +600,27 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
   .summary-value { font-size:18px; }
 }
 
-/* ── Promotion platforms carousel ── */
-.platforms-section { margin: 0 0 14px; }
-.platforms-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:10px; }
-.platforms-kicker { color:#f0c040; font-size:10px; font-weight:800; letter-spacing:1.8px; }
-.platforms-heading h2 { color:#f8fafc; font-size:18px; margin-top:3px; }
-.platforms-hint { color:#aebed0; font-size:11px; white-space:nowrap; }
-.platforms-carousel { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 10px; scrollbar-width:thin; }
-.logo-gallery { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:12px 0 14px; }
-.logo-item { aspect-ratio:1; display:grid; place-items:center; padding:10px; border:1px solid rgba(124,92,255,.45); border-radius:15px; background:linear-gradient(145deg,rgba(30,36,78,.9),rgba(15,20,48,.95)); box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2); animation:logoIn .55s ease both,logoGlow 3.5s ease-in-out infinite; }
-.logo-item:nth-child(2n){animation-delay:.08s}.logo-item:nth-child(3n){animation-delay:.16s}.logo-item:hover{transform:translateY(-3px) scale(1.03);border-color:#8d7bff;box-shadow:0 0 22px rgba(69,162,255,.45),0 0 30px rgba(124,92,255,.25)}
-.logo-item img { max-width:100%; max-height:100%; object-fit:contain; border-radius:10px; }
-@keyframes logoIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes logoGlow{0%,100%{box-shadow:0 0 0 1px rgba(69,162,255,.1),0 10px 24px rgba(0,0,0,.2)}50%{box-shadow:0 0 0 1px rgba(141,123,255,.38),0 0 24px rgba(69,162,255,.2)}}
-.platform-card { flex:0 0 190px; min-height:104px; scroll-snap-align:start; padding:14px; border-radius:14px; border:1px solid #34465a; background:linear-gradient(145deg,#182534,#101923); color:#f8fafc; box-shadow:0 8px 18px rgba(0,0,0,.16); }
-.platform-card strong { display:block; margin-top:9px; font-size:13px; }
-.platform-card small { display:block; color:#8fa3b8; margin-top:4px; font-size:10px; }
-.platform-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; color:#f0c040; border:1px solid #b88620; font-size:11px; font-weight:900; }
+/* ── Karawai Christmas message ── */
+.karawai-message {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 14px;
+  padding: 22px 20px;
+  border: 1px solid rgba(255,217,120,.78);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(223,83,96,.22), transparent 42%),
+    radial-gradient(circle at 88% 100%, rgba(47,158,104,.2), transparent 46%),
+    linear-gradient(145deg, rgba(20,70,56,.98), rgba(9,42,33,.98));
+  box-shadow: 0 12px 30px rgba(0,0,0,.2), 0 0 24px rgba(255,217,120,.12);
+}
+.karawai-message::before { content:''; position:absolute; inset:5px; border:1px solid rgba(223,83,96,.58); border-radius:13px; pointer-events:none; }
+.karawai-message-kicker { margin:0 0 7px; color:#f0c040; font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; }
+.karawai-message h2 { margin:0 0 8px; color:#fff3d0; font-size:clamp(19px,4vw,25px); line-height:1.15; }
+.karawai-message p { max-width:680px; margin:0 0 8px; color:#e9f5ed; font-size:13px; line-height:1.7; }
+.karawai-message strong { color:#ffd978; }
+.karawai-message-signoff { display:block; margin-top:12px; color:#9ee4b9; font-size:12px; font-weight:700; }
+@media (max-width:599px) { .karawai-message { padding:20px 16px; } }
 /* ═══════════════════════════════════════
    HOME PAGE
 ═══════════════════════════════════════ */
@@ -896,12 +917,12 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .hero-kicker { color:#8fb8ff; font-size:10px; font-weight:800; letter-spacing:1.5px; }
 .dashboard-hero h1 { color:#fff; font-size:22px; margin:2px 0; }.dashboard-hero p,.hero-balance span { color:#b9c7e9; font-size:12px; }.hero-balance { text-align:right; }.hero-balance strong { display:block; color:#e5dcff; font-size:22px; margin-top:3px; }.dashboard-summary-grid { width:min(100%,480px); margin:12px auto; grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:center; }.dashboard-summary-grid .settlement-summary-card { background:linear-gradient(145deg,rgba(28,31,83,.96),rgba(17,29,67,.96)); border-color:rgba(69,162,255,.35); min-width:0; }.dashboard-summary-grid .summary-label { color:#a8b8e5; font-size:11px; }.dashboard-summary-grid .summary-value { color:#d9d2ff; }
 @keyframes premiumPulse { 0%,100% { box-shadow:0 0 0 1px rgba(69,162,255,.18),0 0 20px rgba(124,92,255,.12); } 50% { box-shadow:0 0 0 1px rgba(141,123,255,.5),0 0 34px rgba(69,162,255,.24); } }
-@media(max-width:599px){.logo-gallery{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.dashboard-hero{grid-template-columns:auto 1fr}.hero-balance{grid-column:1/-1;text-align:left}.dashboard-hero h1{font-size:19px}}
+@media(max-width:599px){.dashboard-hero{grid-template-columns:auto 1fr}.hero-balance{grid-column:1/-1;text-align:left}.dashboard-hero h1{font-size:19px}}
 @media(min-width:600px) {
   .quick-actions { grid-template-columns: repeat(3, 1fr); }
   .page-wrap { padding: 22px 22px 84px; }
 }
-@media(prefers-reduced-motion:reduce){.logo-item,.dashboard-hero{animation:none!important}.logo-item:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.dashboard-hero{animation:none!important}}
 
 /* ROTATING GLOW BORDER - FIXED */
 .qa-btn,
@@ -1070,31 +1091,18 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
     <!-- ── HOME ── -->
     <section id="pageHome" class="page-wrap">
 
-      <nav class="christmas message"
-      <div class="message-box"
-      <h3> Merry Christmas and Happy New Year </h3>
-
-      <p>
-        I’m truly grateful that, after working together for such a long time,
-      we’ve reached another wonderful Christmas season together.
-      </p>
-
-      <p>
-         As we continue our journey, let’s keep growing, improving, and building
-      a stronger team—always ready to support and help individuals increase
-      their daily income and develop their own teams.
-      </p>
-
-    <p>
-       Thank you for your continued trust, support, and hard work.
-      May we achieve even greater success together in the coming year.
-    </p>
-
-    <strong> 
-            Once again, Merry Christmas and Happy New Year, everyone!
-    </strong>
-  </div>
-</nav>
+      <section class="karawai-message" aria-labelledby="karawaiMessageTitle">
+        <div class="karawai-message-kicker">Karawai's Christmas Message</div>
+        <h2 id="karawaiMessageTitle">🎄 Merry Christmas, Team Karawai! 🎁</h2>
+        <p>
+          May this Christmas season bring peace to your heart, joy to your family, and fresh hope for the year ahead.
+          Thank you for your trust, support, and hard work throughout the year.
+        </p>
+        <p>
+          Let us continue to grow together, support one another, and celebrate every small victory with kindness and gratitude.
+        </p>
+        <span class="karawai-message-signoff">With warm wishes, <strong>Team Karawai</strong> ✨</span>
+      </section>
 
 </section>
 
