@@ -16,6 +16,7 @@ if (!sessionSecret) {
 }
 
 app.set("trust proxy", 1);
+
 /* ========================================
    MIDDLEWARE
 ======================================== */
@@ -25,7 +26,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(
     session({
         secret: sessionSecret,
-
         resave: false,
         saveUninitialized: false,
 
@@ -116,34 +116,49 @@ function requireAdmin(req, res, next) {
     if (!req.session.admin) {
         return res.status(401).json({
             success: false,
-            message:
-                "Admin authentication required."
+            message: "Admin authentication required."
         });
     }
 
     next();
 }
 
+/* ========================================
+   REAL-TIME / LIVE CONNECTIONS
+======================================== */
+
 const liveClients = new Set();
+
 const ACTIVE_WINDOW_MS = 2 * 60 * 1000;
 
 function isRecentlyActive(lastSeen) {
-    return Boolean(lastSeen && Date.now() - Date.parse(lastSeen) <= ACTIVE_WINDOW_MS);
+    return Boolean(
+        lastSeen &&
+        Date.now() - Date.parse(lastSeen) <= ACTIVE_WINDOW_MS
+    );
 }
 
 function getActiveUserCount() {
-    const cutoff = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
-    return db.prepare(`
-        SELECT COUNT(*) AS count
-        FROM users
-        WHERE last_seen IS NOT NULL
-          AND last_seen >= ?
-          AND status != 'frozen'
-    `).get(cutoff).count;
+    const cutoff = new Date(
+        Date.now() - ACTIVE_WINDOW_MS
+    ).toISOString();
+
+    return db
+        .prepare(`
+            SELECT COUNT(*) AS count
+            FROM users
+            WHERE last_seen IS NOT NULL
+              AND last_seen >= ?
+              AND status != 'frozen'
+        `)
+        .get(cutoff).count;
 }
 
 function broadcastLive(event, payload = {}) {
-    const message = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
+    const message =
+        `event: ${event}\n` +
+        `data: ${JSON.stringify(payload)}\n\n`;
+
     for (const client of liveClients) {
         try {
             client.res.write(message);
@@ -246,8 +261,7 @@ app.post("/api/register", (req, res) => {
             }
         }
 
-        const now =
-            new Date().toISOString();
+        const now = new Date().toISOString();
 
         const registrationIP = getClientIP(req);
 
@@ -255,116 +269,114 @@ app.post("/api/register", (req, res) => {
            CREATE USER
         ======================================== */
 
-        const createUser =
-            db.transaction(() => {
-                const result = db
-                    .prepare(`
-                        INSERT INTO users
-                        (
-                            username,
-                            name,
-                            password_hash,
-                            verified,
-                            status,
-                            registration_ip,
-                            referred_by,
-                            invitation_code,
-                            created_at
-                        )
-                        VALUES (?, ?, ?, 1, 'active', ?, ?, ?, ?)
-                    `)
-                    .run(
-                        cleanUsername,
-                        cleanName,
-                        hashPassword(password),
-                        registrationIP,
-                        inviteOwnerId,
-                        null,
-                        now
-                    );
+        const createUser = db.transaction(() => {
+            const result = db
+                .prepare(`
+                    INSERT INTO users
+                    (
+                        username,
+                        name,
+                        password_hash,
+                        verified,
+                        status,
+                        registration_ip,
+                        referred_by,
+                        invitation_code,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, 1, 'active', ?, ?, ?, ?)
+                `)
+                .run(
+                    cleanUsername,
+                    cleanName,
+                    hashPassword(password),
+                    registrationIP,
+                    inviteOwnerId,
+                    null,
+                    now
+                );
 
-                const userId =
-                    Number(
-                        result.lastInsertRowid
-                    );
+            const userId =
+                Number(result.lastInsertRowid);
 
-                const invitationCode =
-                    generateInvitationCode();
+            const invitationCode =
+                generateInvitationCode();
+
+            db.prepare(`
+                UPDATE users
+                SET invitation_code = ?
+                WHERE id = ?
+            `).run(
+                invitationCode,
+                userId
+            );
+
+            /* Referral reward */
+
+            if (inviteOwnerId) {
+                const REWARD = 2;
 
                 db.prepare(`
                     UPDATE users
-                    SET invitation_code = ?
+                    SET balance = balance + ?
                     WHERE id = ?
                 `).run(
-                    invitationCode,
+                    REWARD,
                     userId
                 );
 
-                /* Referral reward */
-                if (inviteOwnerId) {
-                    const REWARD = 2;
+                db.prepare(`
+                    UPDATE users
+                    SET
+                        balance = balance + ?,
+                        total_referrals =
+                            total_referrals + 1
+                    WHERE id = ?
+                `).run(
+                    REWARD,
+                    inviteOwnerId
+                );
 
-                    db.prepare(`
-                        UPDATE users
-                        SET balance = balance + ?
-                        WHERE id = ?
-                    `).run(
-                        REWARD,
-                        userId
-                    );
-
-                    db.prepare(`
-                        UPDATE users
-                        SET
-                            balance = balance + ?,
-                            total_referrals =
-                                total_referrals + 1
-                        WHERE id = ?
-                    `).run(
-                        REWARD,
-                        inviteOwnerId
-                    );
-
-                    db.prepare(`
-                        INSERT INTO notifications
-                        (
-                            user_id,
-                            title,
-                            message,
-                            is_read,
-                            created_at
-                        )
-                        VALUES (?, ?, ?, 0, ?)
-                    `).run(
-                        userId,
-                        "🎁 Welcome Bonus!",
-                        `You used an invitation code and received ₱${REWARD}.00.`,
-                        now
-                    );
-
-                    db.prepare(`
-                        INSERT INTO notifications
-                        (
-                            user_id,
-                            title,
-                            message,
-                            is_read,
-                            created_at
-                        )
-                        VALUES (?, ?, ?, 0, ?)
-                    `).run(
-                        inviteOwnerId,
-                        "🎉 Referral Bonus!",
-                        `${cleanUsername} joined using your invitation code. You received ₱${REWARD}.00.`,
-                        now
-                    );
-                }
-
-                return {
+                db.prepare(`
+                    INSERT INTO notifications
+                    (
+                        user_id,
+                        title,
+                        message,
+                        is_read,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, 0, ?)
+                `).run(
                     userId,
-                    invitationCode
-                };
-            });
+                    "🎁 Welcome Bonus!",
+                    `You used an invitation code and received ₱${REWARD}.00.`,
+                    now
+                );
+
+                db.prepare(`
+                    INSERT INTO notifications
+                    (
+                        user_id,
+                        title,
+                        message,
+                        is_read,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, 0, ?)
+                `).run(
+                    inviteOwnerId,
+                    "🎉 Referral Bonus!",
+                    `${cleanUsername} joined using your invitation code. You received ₱${REWARD}.00.`,
+                    now
+                );
+            }
+
+            return {
+                userId,
+                invitationCode
+            };
+        });
 
         const createdUser = createUser();
 
@@ -375,8 +387,21 @@ app.post("/api/register", (req, res) => {
         };
 
         req.session.user = user;
-        db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
-            .run(new Date().toISOString(), user.id);
+
+        db.prepare(`
+            UPDATE users
+            SET last_seen = ?
+            WHERE id = ?
+        `).run(
+            new Date().toISOString(),
+            user.id
+        );
+
+        broadcastLive("refresh", {
+            reason: "user-register",
+            activeNow: getActiveUserCount(),
+            userId: user.id
+        });
 
         res.json({
             success: true,
@@ -486,11 +511,13 @@ app.post("/api/login", (req, res) => {
             SET
                 last_ip = ?,
                 last_device = ?,
-                last_login = ?
+                last_login = ?,
+                last_seen = ?
             WHERE id = ?
         `).run(
             ip,
             device,
+            loginTime,
             loginTime,
             user.id
         );
@@ -506,8 +533,12 @@ app.post("/api/login", (req, res) => {
             username: user.username,
             name: user.name
         };
-        db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
-            .run(new Date().toISOString(), user.id);
+
+        broadcastLive("refresh", {
+            reason: "user-login",
+            activeNow: getActiveUserCount(),
+            userId: user.id
+        });
 
         res.json({
             success: true,
@@ -586,33 +617,81 @@ app.get("/api/me", (req, res) => {
    LIVE HEARTBEAT / SERVER-SENT EVENTS
 ======================================== */
 
-app.post("/api/heartbeat", requireUser, (req, res) => {
-    const lastSeen = new Date().toISOString();
-    db.prepare("UPDATE users SET last_seen = ? WHERE id = ?")
-        .run(lastSeen, req.session.user.id);
-    broadcastLive("refresh", {
-        reason: "heartbeat",
-        activeNow: getActiveUserCount(),
-        at: lastSeen
-    });
-    res.json({ success: true, last_seen: lastSeen });
-});
+app.post(
+    "/api/heartbeat",
+    requireUser,
+    (req, res) => {
+        const lastSeen =
+            new Date().toISOString();
+
+        db.prepare(`
+            UPDATE users
+            SET last_seen = ?
+            WHERE id = ?
+        `).run(
+            lastSeen,
+            req.session.user.id
+        );
+
+        broadcastLive("refresh", {
+            reason: "heartbeat",
+            activeNow: getActiveUserCount(),
+            at: lastSeen
+        });
+
+        res.json({
+            success: true,
+            last_seen: lastSeen
+        });
+    }
+);
 
 app.get("/api/live", (req, res) => {
-    if (!req.session.user && !req.session.admin) {
+    if (
+        !req.session.user &&
+        !req.session.admin
+    ) {
         return res.status(401).end();
     }
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache, no-transform");
-    res.setHeader("Connection", "keep-alive");
+    res.setHeader(
+        "Content-Type",
+        "text/event-stream"
+    );
+
+    res.setHeader(
+        "Cache-Control",
+        "no-cache, no-transform"
+    );
+
+    res.setHeader(
+        "Connection",
+        "keep-alive"
+    );
+
     res.flushHeaders?.();
 
-    const client = { res, userId: req.session.user?.id || null, admin: Boolean(req.session.admin) };
-    liveClients.add(client);
-    res.write(`event: connected\ndata: ${JSON.stringify({ connected: true })}\n\n`);
+    const client = {
+        res,
+        userId:
+            req.session.user?.id || null,
+        admin:
+            Boolean(req.session.admin)
+    };
 
-    req.on("close", () => liveClients.delete(client));
+    liveClients.add(client);
+
+    res.write(
+        `event: connected\n` +
+        `data: ${JSON.stringify({
+            connected: true,
+            activeNow: getActiveUserCount()
+        })}\n\n`
+    );
+
+    req.on("close", () => {
+        liveClients.delete(client);
+    });
 });
 
 setInterval(() => {
@@ -1168,6 +1247,13 @@ app.post(
                         );
                 })();
 
+            broadcastLive("refresh", {
+                reason: "new-withdrawal",
+                withdrawalId:
+                    Number(withdrawal.lastInsertRowid),
+                userId
+            });
+
             res.json({
                 success: true,
                 message:
@@ -1390,13 +1476,20 @@ app.get(
                 .all()
                 .map(user => ({
                     ...user,
-                    is_active: isRecentlyActive(user.last_seen)
+                    is_active:
+                        isRecentlyActive(
+                            user.last_seen
+                        )
                 }));
 
             res.json({
                 success: true,
                 users,
-                activeNow: users.filter(user => user.is_active).length
+                activeNow:
+                    users.filter(
+                        user =>
+                            user.is_active
+                    ).length
             });
 
         } catch (error) {
@@ -1535,6 +1628,14 @@ app.post(
                 });
             }
 
+            broadcastLive("refresh", {
+                reason: "user-freeze",
+                userId:
+                    Number(req.params.id),
+                activeNow:
+                    getActiveUserCount()
+            });
+
             res.json({
                 success: true,
                 message:
@@ -1580,6 +1681,14 @@ app.post(
                         "User not found."
                 });
             }
+
+            broadcastLive("refresh", {
+                reason: "user-unfreeze",
+                userId:
+                    Number(req.params.id),
+                activeNow:
+                    getActiveUserCount()
+            });
 
             res.json({
                 success: true,
@@ -1667,6 +1776,9 @@ app.post(
                 (user.balance || 0) +
                 parsed;
 
+            const now =
+                new Date().toISOString();
+
             db.prepare(`
                 INSERT INTO notifications
                 (
@@ -1690,8 +1802,16 @@ app.post(
                         ? `: ${note}`
                         : "."
                 }`,
-                new Date().toISOString()
+                now
             );
+
+            broadcastLive("refresh", {
+                reason: "cash-added",
+                userId:
+                    Number(userId),
+                amount: parsed,
+                newBalance
+            });
 
             res.json({
                 success: true,
@@ -1894,17 +2014,17 @@ app.get(
                     pending_amount:
                         Number(
                             summary.pending_amount ||
-                                0
+                            0
                         ),
                     approved_amount:
                         Number(
                             summary.approved_amount ||
-                                0
+                            0
                         ),
                     rejected_amount:
                         Number(
                             summary.rejected_amount ||
-                                0
+                            0
                         )
                 }
             });
@@ -2062,6 +2182,14 @@ app.post(
                 now
             );
 
+            broadcastLive("refresh", {
+                reason: "withdrawal-approved",
+                withdrawalId:
+                    Number(req.params.id),
+                userId:
+                    withdrawal.user_id
+            });
+
             res.json({
                 success: true,
                 message:
@@ -2134,7 +2262,9 @@ app.post(
                             WHERE id = ?
                               AND LOWER(status) =
                                   'pending'
-                        `).run(req.params.id);
+                        `).run(
+                            req.params.id
+                        );
 
                     if (!result.changes) {
                         throw new Error(
@@ -2178,6 +2308,14 @@ app.post(
                 });
 
             transaction();
+
+            broadcastLive("refresh", {
+                reason: "withdrawal-rejected",
+                withdrawalId:
+                    Number(req.params.id),
+                userId:
+                    withdrawal.user_id
+            });
 
             res.json({
                 success: true,
@@ -2266,6 +2404,11 @@ app.post(
 
                 bulk(users);
 
+                broadcastLive("refresh", {
+                    reason:
+                        "notification-all"
+                });
+
                 return res.json({
                     success: true,
                     message:
@@ -2306,6 +2449,13 @@ app.post(
                 now
             );
 
+            broadcastLive("refresh", {
+                reason:
+                    "notification-user",
+                userId:
+                    Number(userId)
+            });
+
             res.json({
                 success: true,
                 message:
@@ -2327,111 +2477,546 @@ app.post(
     }
 );
 
-
 /* ========================================
    USER + ADMIN TASKS
 ======================================== */
 
-app.get('/api/tasks', requireUser, (req, res) => {
-    try {
-        const tasks = db.prepare(`
-            SELECT t.*,
-              (SELECT status FROM task_completions tc WHERE tc.task_id=t.id AND tc.user_id=? ORDER BY tc.id DESC LIMIT 1) AS my_status
-            FROM tasks t WHERE t.status='active' ORDER BY t.id DESC
-        `).all(req.session.user.id);
-        const completions = db.prepare(`
-            SELECT tc.*, t.title, t.reward FROM task_completions tc
-            JOIN tasks t ON t.id=tc.task_id WHERE tc.user_id=? ORDER BY tc.id DESC LIMIT 50
-        `).all(req.session.user.id);
-        res.json({success:true,tasks,completions});
-    } catch (error) {
-        console.error('TASKS ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to load tasks.'});
-    }
-});
+app.get(
+    "/api/tasks",
+    requireUser,
+    (req, res) => {
+        try {
+            const tasks = db
+                .prepare(`
+                    SELECT
+                        t.*,
+                        (
+                            SELECT status
+                            FROM task_completions tc
+                            WHERE tc.task_id = t.id
+                              AND tc.user_id = ?
+                            ORDER BY tc.id DESC
+                            LIMIT 1
+                        ) AS my_status
+                    FROM tasks t
+                    WHERE t.status = 'active'
+                    ORDER BY t.id DESC
+                `)
+                .all(
+                    req.session.user.id
+                );
 
-app.post('/api/tasks/:id/complete', requireUser, (req, res) => {
-    try {
-        const task = db.prepare("SELECT * FROM tasks WHERE id=? AND status='active'").get(req.params.id);
-        if (!task) return res.status(404).json({success:false,message:'Task not found or inactive.'});
-        const proof = String(req.body.proof || '').trim();
-        if (!proof) return res.status(400).json({success:false,message:'Proof is required.'});
-        const existing = db.prepare("SELECT id,status FROM task_completions WHERE task_id=? AND user_id=? AND status IN ('Pending','Approved')").get(task.id, req.session.user.id);
-        if (existing) return res.status(409).json({success:false,message: existing.status === 'Approved' ? 'You already completed this task.' : 'This task is still pending review.'});
-        db.prepare("INSERT INTO task_completions (task_id,user_id,proof,status,created_at) VALUES (?,?,?,'Pending',?)").run(task.id, req.session.user.id, proof, new Date().toISOString());
-        res.json({success:true,message:'Task submitted for review.'});
-    } catch (error) {
-        console.error('TASK SUBMIT ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to submit task.'});
-    }
-});
+            const completions = db
+                .prepare(`
+                    SELECT
+                        tc.*,
+                        t.title,
+                        t.reward
+                    FROM task_completions tc
+                    JOIN tasks t
+                        ON t.id = tc.task_id
+                    WHERE tc.user_id = ?
+                    ORDER BY tc.id DESC
+                    LIMIT 50
+                `)
+                .all(
+                    req.session.user.id
+                );
 
-app.get('/api/admin/tasks', requireAdmin, (req, res) => {
-    try {
-        const tasks = db.prepare(`SELECT t.*,
-          (SELECT COUNT(*) FROM task_completions tc WHERE tc.task_id=t.id) submissions,
-          (SELECT COUNT(*) FROM task_completions tc WHERE tc.task_id=t.id AND tc.status='Pending') pending_submissions
-          FROM tasks t ORDER BY t.id DESC`).all();
-        res.json({success:true,tasks});
-    } catch (error) {
-        console.error('ADMIN TASKS ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to load tasks.'});
-    }
-});
+            res.json({
+                success: true,
+                tasks,
+                completions
+            });
 
-app.post('/api/admin/tasks', requireAdmin, (req, res) => {
-    try {
-        const title=String(req.body.title||'').trim(); const description=String(req.body.description||'').trim(); const reward=Number(req.body.reward);
-        if (!title || !Number.isFinite(reward) || reward <= 0) return res.status(400).json({success:false,message:'Title and positive reward are required.'});
-        db.prepare("INSERT INTO tasks (title,description,reward,status,created_at) VALUES (?,?,?,'active',?)").run(title,description,reward,new Date().toISOString());
-        res.json({success:true,message:'Task created.'});
-    } catch (error) {
-        console.error('CREATE TASK ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to create task.'});
-    }
-});
+        } catch (error) {
+            console.error(
+                "TASKS ERROR:",
+                error
+            );
 
-app.post('/api/admin/tasks/:id/status', requireAdmin, (req, res) => {
-    const status=req.body.status;
-    if (!['active','inactive'].includes(status)) return res.status(400).json({success:false,message:'Invalid task status.'});
-    const r=db.prepare('UPDATE tasks SET status=? WHERE id=?').run(status,req.params.id);
-    res.json({success:r.changes>0,message:r.changes?'Task status updated.':'Task not found.'});
-});
-
-app.get('/api/admin/task-completions', requireAdmin, (req, res) => {
-    try {
-        const completions=db.prepare(`SELECT tc.*, u.name user_name, u.username user_username, t.title task_title, t.reward task_reward
-          FROM task_completions tc JOIN users u ON u.id=tc.user_id JOIN tasks t ON t.id=tc.task_id ORDER BY tc.id DESC`).all();
-        res.json({success:true,completions});
-    } catch (error) {
-        console.error('ADMIN TASK COMPLETIONS ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to load task submissions.'});
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load tasks."
+            });
+        }
     }
-});
+);
 
-app.post('/api/admin/task-completions/:id/review', requireAdmin, (req, res) => {
-    try {
-        const status=req.body.status;
-        if (!['Approved','Rejected'].includes(status)) return res.status(400).json({success:false,message:'Invalid review status.'});
-        const row=db.prepare(`SELECT tc.*, t.title task_title, t.reward task_reward FROM task_completions tc JOIN tasks t ON t.id=tc.task_id WHERE tc.id=?`).get(req.params.id);
-        if (!row) return res.status(404).json({success:false,message:'Submission not found.'});
-        if (row.status !== 'Pending') return res.status(409).json({success:false,message:'Submission already reviewed.'});
-        const now=new Date().toISOString();
-        const tx=db.transaction(() => {
-            db.prepare('UPDATE task_completions SET status=?, reviewed_at=? WHERE id=?').run(status,now,row.id);
-            if (status === 'Approved') db.prepare('UPDATE users SET balance=balance+? WHERE id=?').run(row.task_reward,row.user_id);
-            db.prepare('INSERT INTO notifications (user_id,title,message,is_read,created_at) VALUES (?,?,?,0,?)').run(row.user_id, status === 'Approved' ? 'Task Approved' : 'Task Rejected', status === 'Approved' ? `Your task "${row.task_title}" was approved and ₱${Number(row.task_reward).toFixed(2)} was added.` : `Your task "${row.task_title}" was rejected.`, now);
-        });
-        tx();
-        res.json({success:true,message:`Submission ${status.toLowerCase()}.`});
-    } catch (error) {
-        console.error('REVIEW TASK ERROR:', error);
-        res.status(500).json({success:false,message:'Unable to review submission.'});
+app.post(
+    "/api/tasks/:id/complete",
+    requireUser,
+    (req, res) => {
+        try {
+            const task = db
+                .prepare(`
+                    SELECT *
+                    FROM tasks
+                    WHERE id = ?
+                      AND status = 'active'
+                `)
+                .get(req.params.id);
+
+            if (!task) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Task not found or inactive."
+                });
+            }
+
+            const proof =
+                String(
+                    req.body.proof || ""
+                ).trim();
+
+            if (!proof) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Proof is required."
+                });
+            }
+
+            const existing = db
+                .prepare(`
+                    SELECT
+                        id,
+                        status
+                    FROM task_completions
+                    WHERE task_id = ?
+                      AND user_id = ?
+                      AND status IN
+                          ('Pending', 'Approved')
+                `)
+                .get(
+                    task.id,
+                    req.session.user.id
+                );
+
+            if (existing) {
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        existing.status === "Approved"
+                            ? "You already completed this task."
+                            : "This task is still pending review."
+                });
+            }
+
+            db.prepare(`
+                INSERT INTO task_completions
+                (
+                    task_id,
+                    user_id,
+                    proof,
+                    status,
+                    created_at
+                )
+                VALUES (?, ?, ?, 'Pending', ?)
+            `).run(
+                task.id,
+                req.session.user.id,
+                proof,
+                new Date().toISOString()
+            );
+
+            broadcastLive("refresh", {
+                reason:
+                    "task-submitted",
+                userId:
+                    req.session.user.id,
+                taskId:
+                    task.id
+            });
+
+            res.json({
+                success: true,
+                message:
+                    "Task submitted for review."
+            });
+
+        } catch (error) {
+            console.error(
+                "TASK SUBMIT ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to submit task."
+            });
+        }
     }
-});
+);
+
+/* ========================================
+   ADMIN TASKS
+======================================== */
+
+app.get(
+    "/api/admin/tasks",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const tasks = db
+                .prepare(`
+                    SELECT
+                        t.*,
+                        (
+                            SELECT COUNT(*)
+                            FROM task_completions tc
+                            WHERE tc.task_id = t.id
+                        ) AS submissions,
+                        (
+                            SELECT COUNT(*)
+                            FROM task_completions tc
+                            WHERE tc.task_id = t.id
+                              AND tc.status = 'Pending'
+                        ) AS pending_submissions
+                    FROM tasks t
+                    ORDER BY t.id DESC
+                `)
+                .all();
+
+            res.json({
+                success: true,
+                tasks
+            });
+
+        } catch (error) {
+            console.error(
+                "ADMIN TASKS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load tasks."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/tasks",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const title =
+                String(
+                    req.body.title || ""
+                ).trim();
+
+            const description =
+                String(
+                    req.body.description || ""
+                ).trim();
+
+            const reward =
+                Number(req.body.reward);
+
+            if (
+                !title ||
+                !Number.isFinite(reward) ||
+                reward <= 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Title and positive reward are required."
+                });
+            }
+
+            db.prepare(`
+                INSERT INTO tasks
+                (
+                    title,
+                    description,
+                    reward,
+                    status,
+                    created_at
+                )
+                VALUES (?, ?, ?, 'active', ?)
+            `).run(
+                title,
+                description,
+                reward,
+                new Date().toISOString()
+            );
+
+            broadcastLive("refresh", {
+                reason:
+                    "task-created"
+            });
+
+            res.json({
+                success: true,
+                message:
+                    "Task created."
+            });
+
+        } catch (error) {
+            console.error(
+                "CREATE TASK ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to create task."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/tasks/:id/status",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const status =
+                req.body.status;
+
+            if (
+                ![
+                    "active",
+                    "inactive"
+                ].includes(status)
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid task status."
+                });
+            }
+
+            const result = db
+                .prepare(`
+                    UPDATE tasks
+                    SET status = ?
+                    WHERE id = ?
+                `)
+                .run(
+                    status,
+                    req.params.id
+                );
+
+            broadcastLive("refresh", {
+                reason:
+                    "task-status",
+                taskId:
+                    Number(req.params.id)
+            });
+
+            res.json({
+                success:
+                    result.changes > 0,
+                message:
+                    result.changes
+                        ? "Task status updated."
+                        : "Task not found."
+            });
+
+        } catch (error) {
+            console.error(
+                "TASK STATUS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to update task status."
+            });
+        }
+    }
+);
+
+app.get(
+    "/api/admin/task-completions",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const completions =
+                db.prepare(`
+                    SELECT
+                        tc.*,
+                        u.name AS user_name,
+                        u.username AS user_username,
+                        t.title AS task_title,
+                        t.reward AS task_reward
+                    FROM task_completions tc
+                    JOIN users u
+                        ON u.id = tc.user_id
+                    JOIN tasks t
+                        ON t.id = tc.task_id
+                    ORDER BY tc.id DESC
+                `).all();
+
+            res.json({
+                success: true,
+                completions
+            });
+
+        } catch (error) {
+            console.error(
+                "ADMIN TASK COMPLETIONS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load task submissions."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/task-completions/:id/review",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const status =
+                req.body.status;
+
+            if (
+                ![
+                    "Approved",
+                    "Rejected"
+                ].includes(status)
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid review status."
+                });
+            }
+
+            const row = db
+                .prepare(`
+                    SELECT
+                        tc.*,
+                        t.title AS task_title,
+                        t.reward AS task_reward
+                    FROM task_completions tc
+                    JOIN tasks t
+                        ON t.id = tc.task_id
+                    WHERE tc.id = ?
+                `)
+                .get(req.params.id);
+
+            if (!row) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Submission not found."
+                });
+            }
+
+            if (row.status !== "Pending") {
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        "Submission already reviewed."
+                });
+            }
+
+            const now =
+                new Date().toISOString();
+
+            const tx = db.transaction(() => {
+
+                db.prepare(`
+                    UPDATE task_completions
+                    SET
+                        status = ?,
+                        reviewed_at = ?
+                    WHERE id = ?
+                `).run(
+                    status,
+                    now,
+                    row.id
+                );
+
+                if (status === "Approved") {
+                    db.prepare(`
+                        UPDATE users
+                        SET balance =
+                            balance + ?
+                        WHERE id = ?
+                    `).run(
+                        row.task_reward,
+                        row.user_id
+                    );
+                }
+
+                db.prepare(`
+                    INSERT INTO notifications
+                    (
+                        user_id,
+                        title,
+                        message,
+                        is_read,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, 0, ?)
+                `).run(
+                    row.user_id,
+                    status === "Approved"
+                        ? "Task Approved"
+                        : "Task Rejected",
+                    status === "Approved"
+                        ? `Your task "${row.task_title}" was approved and ₱${Number(
+                            row.task_reward
+                        ).toFixed(2)} was added.`
+                        : `Your task "${row.task_title}" was rejected.`,
+                    now
+                );
+            });
+
+            tx();
+
+            broadcastLive("refresh", {
+                reason:
+                    "task-reviewed",
+                completionId:
+                    Number(req.params.id),
+                userId:
+                    row.user_id,
+                status
+            });
+
+            res.json({
+                success: true,
+                message:
+                    `Submission ${status.toLowerCase()}.`
+            });
+
+        } catch (error) {
+            console.error(
+                "REVIEW TASK ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to review submission."
+            });
+        }
+    }
+);
 
 /* ========================================
    GLOBAL CHAT
+   PERMANENT REACTIONS
 ======================================== */
 
 const ALLOWED_REACTIONS = new Set([
@@ -2443,28 +3028,55 @@ const ALLOWED_REACTIONS = new Set([
     "angry"
 ]);
 
-function getChatReactions(messageId, userId) {
-    const counts = db.prepare(`
-        SELECT reaction, COUNT(*) AS count
-        FROM chat_reactions
-        WHERE chat_message_id = ?
-        GROUP BY reaction
-    `).all(messageId).reduce((result, row) => {
-        result[row.reaction] = row.count;
-        return result;
-    }, {});
+function getChatReactions(
+    messageId,
+    userId
+) {
+    const counts = db
+        .prepare(`
+            SELECT
+                reaction,
+                COUNT(*) AS count
+            FROM chat_reactions
+            WHERE chat_message_id = ?
+            GROUP BY reaction
+        `)
+        .all(messageId)
+        .reduce(
+            (result, row) => {
+                result[row.reaction] =
+                    Number(row.count);
 
-    const mine = db.prepare(`
-        SELECT reaction
-        FROM chat_reactions
-        WHERE chat_message_id = ? AND user_id = ?
-    `).get(messageId, userId);
+                return result;
+            },
+            {}
+        );
 
-    return { counts, mine: mine?.reaction || null };
+    const mine = db
+        .prepare(`
+            SELECT reaction
+            FROM chat_reactions
+            WHERE chat_message_id = ?
+              AND user_id = ?
+        `)
+        .get(
+            messageId,
+            userId
+        );
+
+    return {
+        counts,
+        mine:
+            mine?.reaction || null
+    };
 }
 
+/* ========================================
+   GET CHAT
+======================================== */
+
 app.get(
-    "/api/chat", 
+    "/api/chat",
     requireUser,
     (req, res) => {
         try {
@@ -2479,20 +3091,29 @@ app.get(
                         u.name,
                         u.avatar
                     FROM chat_messages cm
-                    JOIN users u ON u.id = cm.user_id
+                    JOIN users u
+                        ON u.id = cm.user_id
                     ORDER BY cm.id DESC
                     LIMIT 100
                 `)
                 .all();
 
-            const enrichedMessages = messages.map(message => ({
-                ...message,
-                reactions: getChatReactions(message.id, req.session.user.id)
-            }));
+            const enrichedMessages =
+                messages.map(message => ({
+                    ...message,
+
+                    reactions:
+                        getChatReactions(
+                            message.id,
+                            req.session.user.id
+                        )
+                }));
 
             res.json({
                 success: true,
-                messages: enrichedMessages.reverse()
+
+                messages:
+                    enrichedMessages.reverse()
             });
 
         } catch (error) {
@@ -2510,14 +3131,19 @@ app.get(
     }
 );
 
+/* ========================================
+   SEND CHAT MESSAGE
+======================================== */
+
 app.post(
     "/api/chat",
     requireUser,
     (req, res) => {
         try {
-            const message = String(
-                req.body.message || ""
-            ).trim();
+            const message =
+                String(
+                    req.body.message || ""
+                ).trim();
 
             if (!message) {
                 return res.status(400).json({
@@ -2535,20 +3161,48 @@ app.post(
                 });
             }
 
-            db.prepare(`
-                INSERT INTO chat_messages
-                (user_id, message, created_at)
-                VALUES (?, ?, ?)
-            `).run(
-                req.session.user.id,
-                message,
-                new Date().toISOString()
-            );
+            const now =
+                new Date().toISOString();
+
+            const result = db
+                .prepare(`
+                    INSERT INTO chat_messages
+                    (
+                        user_id,
+                        message,
+                        created_at
+                    )
+                    VALUES (?, ?, ?)
+                `)
+                .run(
+                    req.session.user.id,
+                    message,
+                    now
+                );
+
+            const messageId =
+                Number(result.lastInsertRowid);
+
+            /*
+                Notify every connected
+                user/admin immediately.
+            */
+
+            broadcastLive("refresh", {
+                reason:
+                    "chat-message",
+                messageId,
+                userId:
+                    req.session.user.id,
+                at: now
+            });
 
             res.json({
                 success: true,
                 message:
-                    "Message sent."
+                    "Message sent.",
+                message_id:
+                    messageId
             });
 
         } catch (error) {
@@ -2566,57 +3220,326 @@ app.post(
     }
 );
 
+/* ========================================
+   CHAT REACTION
+   PERMANENT / NO TIMER
+======================================== */
+
 app.post(
     "/api/chat/:messageId/reaction",
     requireUser,
     (req, res) => {
         try {
-            const messageId = Number(req.params.messageId);
-            const reaction = String(req.body.reaction || "").trim().toLowerCase();
+            const messageId =
+                Number(req.params.messageId);
 
-            if (!Number.isInteger(messageId) || messageId <= 0) {
-                return res.status(400).json({ success: false, message: "Invalid message." });
+            const reaction =
+                String(
+                    req.body.reaction || ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            if (
+                !Number.isInteger(messageId) ||
+                messageId <= 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid message."
+                });
             }
 
-            if (!ALLOWED_REACTIONS.has(reaction)) {
-                return res.status(400).json({ success: false, message: "Invalid reaction." });
+            if (
+                !ALLOWED_REACTIONS.has(
+                    reaction
+                )
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid reaction."
+                });
             }
 
-            const message = db.prepare("SELECT id FROM chat_messages WHERE id = ?").get(messageId);
-            if (!message) {
-                return res.status(404).json({ success: false, message: "Message not found." });
+            const chatMessage = db
+                .prepare(`
+                    SELECT id
+                    FROM chat_messages
+                    WHERE id = ?
+                `)
+                .get(messageId);
+
+            if (!chatMessage) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
             }
 
-            const userId = req.session.user.id;
-            const existing = db.prepare(`
-                SELECT reaction
-                FROM chat_reactions
-                WHERE chat_message_id = ? AND user_id = ?
-            `).get(messageId, userId);
-            const now = new Date().toISOString();
+            const userId =
+                req.session.user.id;
 
-            if (existing?.reaction === reaction) {
+            const existing = db
+                .prepare(`
+                    SELECT reaction
+                    FROM chat_reactions
+                    WHERE chat_message_id = ?
+                      AND user_id = ?
+                `)
+                .get(
+                    messageId,
+                    userId
+                );
+
+            const now =
+                new Date().toISOString();
+
+            /*
+                SAME REACTION
+                = REMOVE IT
+            */
+
+            if (
+                existing?.reaction ===
+                reaction
+            ) {
                 db.prepare(`
                     DELETE FROM chat_reactions
-                    WHERE chat_message_id = ? AND user_id = ?
-                `).run(messageId, userId);
-            } else {
-                db.prepare(`
-                    INSERT INTO chat_reactions
-                        (chat_message_id, user_id, reaction, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?)
-                    ON CONFLICT(chat_message_id, user_id) DO UPDATE SET
-                        reaction = excluded.reaction,
-                        updated_at = excluded.updated_at
-                `).run(messageId, userId, reaction, now, now);
+                    WHERE chat_message_id = ?
+                      AND user_id = ?
+                `).run(
+                    messageId,
+                    userId
+                );
             }
 
-            const reactions = getChatReactions(messageId, userId);
-            broadcastLive("refresh", { reason: "chat-reaction", messageId, at: now });
-            res.json({ success: true, reactions });
+            /*
+                DIFFERENT REACTION
+                = CHANGE IT
+            */
+
+            else {
+                db.prepare(`
+                    INSERT INTO chat_reactions
+                    (
+                        chat_message_id,
+                        user_id,
+                        reaction,
+                        created_at,
+                        updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+
+                    ON CONFLICT(
+                        chat_message_id,
+                        user_id
+                    )
+
+                    DO UPDATE SET
+                        reaction =
+                            excluded.reaction,
+                        updated_at =
+                            excluded.updated_at
+                `).run(
+                    messageId,
+                    userId,
+                    reaction,
+                    now,
+                    now
+                );
+            }
+
+            const reactions =
+                getChatReactions(
+                    messageId,
+                    userId
+                );
+
+            broadcastLive("refresh", {
+                reason:
+                    "chat-reaction",
+                messageId,
+                userId,
+                at: now
+            });
+
+            res.json({
+                success: true,
+                reactions
+            });
+
         } catch (error) {
-            console.error("CHAT REACTION ERROR:", error);
-            res.status(500).json({ success: false, message: "Unable to save reaction." });
+            console.error(
+                "CHAT REACTION ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to save reaction."
+            });
+        }
+    }
+);
+
+/* ========================================
+   ADMIN CHAT
+   GET ALL CHAT MESSAGES
+======================================== */
+
+app.get(
+    "/api/admin/chat",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const messages = db
+                .prepare(`
+                    SELECT
+                        cm.id,
+                        cm.user_id,
+                        cm.message,
+                        cm.created_at,
+                        u.username,
+                        u.name,
+                        u.avatar
+                    FROM chat_messages cm
+                    JOIN users u
+                        ON u.id = cm.user_id
+                    ORDER BY cm.id DESC
+                    LIMIT 200
+                `)
+                .all();
+
+            const enrichedMessages =
+                messages.map(message => ({
+                    ...message,
+
+                    reactions:
+                        getChatReactions(
+                            message.id,
+                            null
+                        )
+                }));
+
+            res.json({
+                success: true,
+                messages:
+                    enrichedMessages.reverse()
+            });
+
+        } catch (error) {
+            console.error(
+                "ADMIN CHAT ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load admin chat."
+            });
+        }
+    }
+);
+
+/* ========================================
+   ADMIN DELETE CHAT MESSAGE
+======================================== */
+
+app.delete(
+    "/api/admin/chat/:messageId",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const messageId =
+                Number(req.params.messageId);
+
+            if (
+                !Number.isInteger(messageId) ||
+                messageId <= 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid message ID."
+                });
+            }
+
+            const message = db
+                .prepare(`
+                    SELECT
+                        id,
+                        user_id,
+                        message
+                    FROM chat_messages
+                    WHERE id = ?
+                `)
+                .get(messageId);
+
+            if (!message) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Chat message not found."
+                });
+            }
+
+            /*
+                Because chat_reactions should
+                use ON DELETE CASCADE,
+                deleting the message also
+                deletes its reactions.
+            */
+
+            const result = db
+                .prepare(`
+                    DELETE FROM chat_messages
+                    WHERE id = ?
+                `)
+                .run(messageId);
+
+            if (!result.changes) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Chat message not found."
+                });
+            }
+
+            /*
+                Tell every connected
+                browser to refresh chat.
+            */
+
+            broadcastLive("refresh", {
+                reason:
+                    "chat-message-deleted",
+                messageId,
+                at:
+                    new Date().toISOString()
+            });
+
+            res.json({
+                success: true,
+                message:
+                    "Chat message deleted."
+            });
+
+        } catch (error) {
+            console.error(
+                "ADMIN DELETE CHAT ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to delete chat message."
+            });
         }
     }
 );
@@ -2630,9 +3553,10 @@ app.post(
     requireUser,
     (req, res) => {
         try {
-            const avatar = String(
-                req.body.avatar || ""
-            ).trim();
+            const avatar =
+                String(
+                    req.body.avatar || ""
+                ).trim();
 
             if (!avatar) {
                 return res.status(400).json({
@@ -2642,7 +3566,11 @@ app.post(
                 });
             }
 
-            if (!avatar.startsWith("data:image/")) {
+            if (
+                !avatar.startsWith(
+                    "data:image/"
+                )
+            ) {
                 return res.status(400).json({
                     success: false,
                     message:
@@ -2650,7 +3578,11 @@ app.post(
                 });
             }
 
-            // Rough size guard (~4MB max after base64)
+            /*
+                Rough size guard
+                ~4MB maximum after base64.
+            */
+
             if (avatar.length > 5_500_000) {
                 return res.status(400).json({
                     success: false,
@@ -2667,6 +3599,13 @@ app.post(
                 avatar,
                 req.session.user.id
             );
+
+            broadcastLive("refresh", {
+                reason:
+                    "avatar-updated",
+                userId:
+                    req.session.user.id
+            });
 
             res.json({
                 success: true,
@@ -2689,18 +3628,49 @@ app.post(
         }
     }
 );
+
 /* ========================================
    START SERVER
 ======================================== */
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log("");
-    console.log("=================================");
-    console.log(
-        `TTPRO running on http://localhost:${PORT}`
-    );
-    console.log("AUTH MODE: USERNAME + PASSWORD");
-    console.log("EMAIL OTP: DISABLED");
-    console.log("=================================");
-    console.log("");
-});
+app.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+        console.log("");
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            `TTPRO running on http://localhost:${PORT}`
+        );
+
+        console.log(
+            "AUTH MODE: USERNAME + PASSWORD"
+        );
+
+        console.log(
+            "EMAIL OTP: DISABLED"
+        );
+
+        console.log(
+            "REAL-TIME: SSE ENABLED"
+        );
+
+        console.log(
+            "GLOBAL CHAT: ENABLED"
+        );
+
+        console.log(
+            "CHAT REACTIONS: PERMANENT"
+        );
+
+        console.log(
+            "================================="
+        );
+
+        console.log("");
+    }
+);

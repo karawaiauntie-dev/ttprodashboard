@@ -269,8 +269,11 @@ db.exec(`
 db.exec(`
     CREATE TABLE IF NOT EXISTS chat_messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
         user_id INTEGER NOT NULL,
+
         message TEXT NOT NULL,
+
         created_at TEXT NOT NULL,
 
         FOREIGN KEY (user_id)
@@ -279,10 +282,12 @@ db.exec(`
     )
 `);
 
+
 db.exec(`
     CREATE INDEX IF NOT EXISTS idx_chat_created
     ON chat_messages (created_at DESC)
 `);
+
 
 /* ========================================
    CHAT REACTIONS
@@ -290,28 +295,60 @@ db.exec(`
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS chat_reactions (
+
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
         chat_message_id INTEGER NOT NULL,
+
         user_id INTEGER NOT NULL,
+
         reaction TEXT NOT NULL,
+
         created_at TEXT NOT NULL,
+
         updated_at TEXT NOT NULL,
 
-        UNIQUE (chat_message_id, user_id),
+        UNIQUE (
+            chat_message_id,
+            user_id
+        ),
 
-        FOREIGN KEY (chat_message_id)
-            REFERENCES chat_messages(id)
-            ON DELETE CASCADE,
+        FOREIGN KEY (
+            chat_message_id
+        )
+        REFERENCES chat_messages(id)
+        ON DELETE CASCADE,
 
-        FOREIGN KEY (user_id)
-            REFERENCES users(id)
-            ON DELETE CASCADE
+        FOREIGN KEY (
+            user_id
+        )
+        REFERENCES users(id)
+        ON DELETE CASCADE
     )
 `);
 
+
+/* Fast lookup by message */
+
 db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_chat_reactions_message
-    ON chat_reactions (chat_message_id)
+    CREATE INDEX IF NOT EXISTS
+    idx_chat_reactions_message
+
+    ON chat_reactions (
+        chat_message_id
+    )
+`);
+
+
+/* Fast lookup by user */
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS
+    idx_chat_reactions_user
+
+    ON chat_reactions (
+        user_id
+    )
 `);
 
 /* ========================================
