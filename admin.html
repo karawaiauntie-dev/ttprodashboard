@@ -826,7 +826,15 @@ async function viewUser(id) {
       <div style="margin-top:16px;background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.15);border-radius:10px;padding:14px;">
         <div style="font-size:11px;font-weight:700;color:var(--gold3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🌐 Last Login Info</div>
         <div class="detail-row" style="padding:8px 0">
-          <span class="d-label">IP Address</span>
+          <span class="d-label">Registration IP</span>
+          <span class="d-val">
+            ${u.registration_ip
+              ? `<span style="font-family:monospace;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);padding:3px 10px;border-radius:6px;color:var(--gold2);font-size:13px">${esc(u.registration_ip)}</span>`
+              : '<span style="color:var(--muted2)">Not recorded</span>'}
+          </span>
+        </div>
+        <div class="detail-row" style="padding:8px 0">
+          <span class="d-label">Last Login IP</span>
           <span class="d-val">
             ${u.last_ip
               ? `<span style="font-family:monospace;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);padding:3px 10px;border-radius:6px;color:var(--gold2);font-size:13px">${esc(u.last_ip)}</span>`

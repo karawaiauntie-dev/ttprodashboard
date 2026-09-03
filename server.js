@@ -220,6 +220,8 @@ app.post("/api/register", (req, res) => {
         const now =
             new Date().toISOString();
 
+        const registrationIP = getClientIP(req);
+
         /* ========================================
            CREATE USER
         ======================================== */
@@ -235,16 +237,18 @@ app.post("/api/register", (req, res) => {
                             password_hash,
                             verified,
                             status,
+                            registration_ip,
                             referred_by,
                             invitation_code,
                             created_at
                         )
-                        VALUES (?, ?, ?, 1, 'active', ?, ?, ?)
+                        VALUES (?, ?, ?, 1, 'active', ?, ?, ?, ?)
                     `)
                     .run(
                         cleanUsername,
                         cleanName,
                         hashPassword(password),
+                        registrationIP,
                         inviteOwnerId,
                         null,
                         now
@@ -844,6 +848,7 @@ app.get(
                         balance,
                         verified,
                         status,
+                        registration_ip,
                         last_ip,
                         last_device,
                         last_login,
@@ -1297,6 +1302,7 @@ app.get(
                         balance,
                         verified,
                         status,
+                        registration_ip,
                         last_ip,
                         last_device,
                         last_login,
@@ -1347,6 +1353,7 @@ app.get(
                         balance,
                         verified,
                         status,
+                        registration_ip,
                         last_ip,
                         last_device,
                         last_login,

@@ -40,6 +40,7 @@ db.exec(`
         password_hash TEXT,
         verified INTEGER NOT NULL DEFAULT 1,
         status TEXT NOT NULL DEFAULT 'active',
+        registration_ip TEXT,
         last_ip TEXT,
         last_device TEXT,
         last_login TEXT,
@@ -308,6 +309,13 @@ const migrations = [
         sql: `
             ALTER TABLE users
             ADD COLUMN status TEXT NOT NULL DEFAULT 'active'
+        `
+    },
+    {
+        column: "registration_ip",
+        sql: `
+            ALTER TABLE users
+            ADD COLUMN registration_ip TEXT
         `
     },
     {

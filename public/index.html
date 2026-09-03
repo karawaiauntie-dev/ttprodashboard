@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>TTPRO — Account Portal</title>
+<title>Welcome to Team Karawai — Christmas Portal</title>
 <style>
 /* ═══════════════════════════════════════
    ROOT / CASINO THEME
@@ -203,6 +203,7 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 }
 
 /* Brand */
+.santa-accent { width:100%; max-width:220px; height:78px; margin:0 auto 12px; border-radius:18px; background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(7,36,27,.72)),url('../santaclause.jfif') center/cover no-repeat; border:1px solid rgba(255,217,120,.62); box-shadow:0 10px 25px rgba(0,0,0,.25),0 0 22px rgba(223,83,96,.22); }
 .brand-wrap { text-align: center; margin-bottom: 6px; }
 .brand-logo {
   font-size: 46px; font-weight: 900; letter-spacing: 5px;
@@ -676,6 +677,16 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 .qa-btn.qa-profile { background:linear-gradient(135deg,#132b55,#2563eb 55%,#45a2ff); }
 .qa-btn.qa-withdraw:hover,.qa-btn.qa-invite:hover,.qa-btn.qa-profile:hover { transform:translateY(-2px); border-color:#b7aaff; box-shadow:0 0 24px rgba(124,92,255,.35),0 12px 28px rgba(0,0,0,.22); }
 .qa-btn:active { transform:translateY(0) scale(.98); }
+/* Team Karawai Christmas action finish */
+.qa-btn.qa-withdraw { background:linear-gradient(135deg,#0c4b35,#137a52 55%,#d5a63a); border-color:rgba(255,224,140,.72); }
+.qa-btn.qa-invite { background:linear-gradient(135deg,#8f1d2c,#c73841 55%,#f2c45b); border-color:rgba(255,220,150,.72); }
+.qa-btn.qa-profile { background:linear-gradient(135deg,#123c68,#1d6ca1 55%,#d7b54a); border-color:rgba(210,236,255,.72); }
+.qa-btn .qa-icon { border-radius:14px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.55); box-shadow:inset 0 0 0 3px rgba(255,255,255,.08),0 5px 14px rgba(0,0,0,.2); }
+.qa-btn .qa-icon span { font-size:25px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+.bottom-nav { background:linear-gradient(180deg,rgba(7,40,29,.98),rgba(55,10,20,.98)); border-top:1px solid rgba(255,217,120,.65); box-shadow:0 -8px 24px rgba(0,0,0,.28); }
+.nav-btn.active { color:#ffe29d; }
+.nav-btn.active .nav-icon { filter:drop-shadow(0 0 9px rgba(255,217,120,.85)); }
+.nav-btn:nth-child(3) .nav-icon,.nav-btn:nth-child(5) .nav-icon,.nav-btn:nth-child(6) .nav-icon { width:31px; height:31px; display:grid; place-items:center; border-radius:10px; background:rgba(255,255,255,.12); border:1px solid rgba(255,217,120,.6); }
 
 /* Stats row */
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
@@ -972,12 +983,13 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 <!-- ═══ AUTH SCREEN ═══ -->
 <div id="authScreen" class="auth-screen">
   <div class="auth-card">
+    <div class="santa-accent" role="img" aria-label="Christmas Santa welcome"></div>
     <div class="brand-wrap">
-      <span class="brand-logo">TTPRO</span>
-      <span class="brand-suits">♠ ♥ ♦ ♣</span>
+      <span class="brand-logo">Welcome to Team Karawai</span>
+      <span class="brand-suits">✦ ❄ ✦</span>
     </div>
     <div class="brand-divider"></div>
-    <div class="brand-tagline">Account Portal</div>
+    <div class="brand-tagline">A Merry Christmas welcome from Team Karawai</div>
 
     <div class="tabs">
       <button class="tab-btn active" id="loginTab">Login</button>
@@ -1084,26 +1096,26 @@ body > *:not(.page-video-bg):not(.page-video-overlay):not(.snow-layer) { positio
 
       <section class="hero dashboard-hero" aria-label="Account summary">
         <div class="hero-avatar" id="heroAvatar">A</div>
-        <div class="hero-copy"><div class="hero-kicker">WELCOME BACK</div><h1 id="heroName">Player</h1><p>Your premium TTPRO account overview</p></div>
+        <div class="hero-copy"><div class="hero-kicker">WELCOME BACK</div><h1 id="heroName">Player</h1><p>Your festive Team Karawai account overview</p></div>
         <div class="hero-balance"><span>Available balance</span><strong id="homeBalance">₱0.00</strong></div>
       </section>
 <div class="quick-actions">
 
   <!-- Withdrawal -->
   <button class="qa-btn qa-withdraw" onclick="switchPage('withdrawal')">
-    <span class="qa-icon">💸</span>
+    <span class="qa-icon" aria-hidden="true">💰</span>
     <span>Withdraw</span>
   </button>
 
   <!-- Invite -->
   <button class="qa-btn qa-invite" onclick="switchPage('invite')">
-    <span class="qa-icon">🎁</span>
+    <span class="qa-icon" aria-hidden="true">🎄</span>
     <span>Invite</span>
   </button>
 
   <!-- Profile -->
   <button class="qa-btn qa-profile" onclick="switchPage('profile')">
-    <span class="qa-icon">👤</span>
+    <span class="qa-icon" aria-hidden="true">🧑‍🎄</span>
     <span>Profile</span>
   </button>
 
@@ -1488,16 +1500,16 @@ document.addEventListener("DOMContentLoaded", function () {
     <span class="nav-icon">💬</span><span class="nav-label">Chat</span>
   </button>
   <button class="nav-item withdraw-btn" id="navWithdrawal" onclick="switchPage('withdrawal')" type="button">
-    <span class="nav-icon">💸</span><span class="nav-label">Withdraw</span>
+    <span class="nav-icon" aria-hidden="true">💰</span><span class="nav-label">Withdraw</span>
   </button>
   <button class="nav-item" id="navTasks" onclick="switchPage('tasks')" type="button">
     <span class="nav-icon">💼</span><span class="nav-label">Tasks</span>
   </button>
   <button class="nav-item" id="navInvite" onclick="switchPage('invite')" type="button">
-    <span class="nav-icon">🎁</span><span class="nav-label">Invite</span>
+    <span class="nav-icon" aria-hidden="true">🎄</span><span class="nav-label">Invite</span>
   </button>
   <button class="nav-item" id="navProfile" onclick="switchPage('profile')" type="button">
-    <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+    <span class="nav-icon" aria-hidden="true">🧑‍🎄</span><span class="nav-label">Profile</span>
   </button>
 </nav>
 
@@ -1727,7 +1739,7 @@ function setActive(element) {
 <div id="logoutModal" class="modal-overlay hidden">
   <div class="modal-box">
     <h3>♠ Logout</h3>
-    <p>Are you sure you want to logout from your TTPRO account?</p>
+    <p>Are you sure you want to logout from your Team Karawai account?</p>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="$('logoutModal').classList.add('hidden')">Cancel</button>
       <button class="modal-confirm" id="confirmLogout">Logout</button>
