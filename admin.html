@@ -352,6 +352,7 @@ body{background:radial-gradient(circle at 12% 0%,rgba(213,166,58,.12),transparen
     <button class="nav-tab active" data-tab="users">👥 Users</button>
     <button class="nav-tab" data-tab="withdrawals">💸 Withdrawals</button>
     <button class="nav-tab" data-tab="tasks">💼 Tasks</button>
+    <button class="nav-tab" data-tab="ftd">📈 FTD Incentives</button>
     <button class="nav-tab" data-tab="notifications">🔔 Notifications</button>
   </nav>
 
@@ -433,6 +434,29 @@ body{background:radial-gradient(circle at 12% 0%,rgba(213,166,58,.12),transparen
             </tr>
           </thead>
           <tbody id="wdBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FTD INCENTIVES TAB ══ -->
+  <div id="tab-ftd" class="page hidden">
+    <div class="page-title">FTD Incentive Submissions</div>
+    <div class="page-sub">Review submitted FTD incentive requests</div>
+    <div class="card">
+      <div class="card-head">
+        <h2>All FTD Submissions</h2>
+        <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadFtdSubmissions()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>User</th><th>FTDs</th><th>Bonus</th>
+              <th>Platform Site</th><th>Game ID</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ftdBody"></tbody>
         </table>
       </div>
     </div>
@@ -709,13 +733,63 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const tab = btn.dataset.tab;
-    ['users','withdrawals','tasks','notifications'].forEach(t => {
+    ['users','withdrawals','tasks','ftd','notifications'].forEach(t => {
       $(`tab-${t}`).classList.toggle('hidden', t !== tab);
     });
     if (tab === 'withdrawals') loadWithdrawals();
     if (tab === 'tasks') { loadAdminTasks(); loadAdminCompletions(); }
+    if (tab === 'ftd') loadFtdSubmissions();
   };
 });
+
+/* ═══════════ FTD INCENTIVES ═══════════ */
+async function loadFtdSubmissions() {
+  const body = $('ftdBody');
+  body.innerHTML = '<tr><td colspan="9"><div class="empty">Loading FTD submissions…</div></td></tr>';
+  try {
+    const d = await api('/api/admin/ftd-submissions');
+    renderFtdSubmissions(d.submissions || []);
+  } catch (err) {
+    body.innerHTML = `<tr><td colspan="9"><div class="empty">${esc(err.message)}</div></td></tr>`;
+  }
+}
+
+function renderFtdSubmissions(list) {
+  const body = $('ftdBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="9"><div class="empty">No FTD submissions yet.</div></td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${esc(s.user_name || s.user_username || '—')}<br><small>${esc(s.user_username || '')}</small></td>
+      <td>${s.ftd_count}</td>
+      <td><strong>${money(s.bonus)}</strong></td>
+      <td>${esc(s.platform_site)}</td>
+      <td>${esc(s.game_id)}</td>
+      <td><span class="badge ${(s.status || '').toLowerCase()}">${esc(s.status)}</span></td>
+      <td>${fmtDate(s.created_at)}</td>
+      <td>${s.status === 'Pending'
+        ? `<button class="act-btn act-unfreeze" onclick="reviewFtd(${s.id}, 'Approved')">Approve</button> <button class="act-btn act-freeze" onclick="reviewFtd(${s.id}, 'Rejected')">Reject</button>`
+        : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+async function reviewFtd(id, status) {
+  if (!confirm(`${status} FTD submission #${id}?`)) return;
+  try {
+    await api(`/api/admin/ftd-submissions/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ status })
+    });
+    toast(`FTD submission ${status.toLowerCase()}`, 'ok');
+    loadFtdSubmissions();
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+}
 
 /* ═══════════ USERS ═══════════ */
 async function loadUsers(showToast = true) {

@@ -2653,6 +2653,164 @@ app.post(
 );
 
 /* ========================================
+   FTD INCENTIVES
+======================================== */
+
+const FTD_INCENTIVES = Object.freeze({
+    10: 100,
+    25: 250,
+    40: 400,
+    70: 600,
+    100: 800
+});
+
+app.get(
+    "/api/ftd-submissions",
+    requireUser,
+    (req, res) => {
+        try {
+            const submissions = db.prepare(`
+                SELECT id, ftd_count, bonus, platform_site, game_id, status, reviewed_at, created_at
+                FROM ftd_submissions
+                WHERE user_id = ?
+                ORDER BY id DESC
+                LIMIT 50
+            `).all(req.session.user.id);
+
+            res.json({ success: true, submissions });
+        } catch (error) {
+            console.error("FTD LIST ERROR:", error);
+            res.status(500).json({ success: false, message: "Unable to load FTD submissions." });
+        }
+    }
+);
+
+app.post(
+    "/api/ftd-submissions",
+    requireUser,
+    (req, res) => {
+        try {
+            const ftdCount = Number(req.body.ftd_count);
+            const platformSite = String(req.body.platform_site || "").trim();
+            const gameId = String(req.body.game_id || "").trim();
+            const bonus = FTD_INCENTIVES[ftdCount];
+
+            if (!bonus || !platformSite || !gameId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Select a valid FTD tier and complete Platform Site and Game ID."
+                });
+            }
+
+            if (platformSite.length > 160 || gameId.length > 120) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Platform Site or Game ID is too long."
+                });
+            }
+
+            const existing = db.prepare(`
+                SELECT id, status
+                FROM ftd_submissions
+                WHERE user_id = ?
+                  AND ftd_count = ?
+                  AND status IN ('Pending', 'Approved')
+                LIMIT 1
+            `).get(req.session.user.id, ftdCount);
+
+            if (existing) {
+                return res.status(409).json({
+                    success: false,
+                    message: existing.status === "Approved"
+                        ? "You already have an approved submission for this tier."
+                        : "This FTD tier is already pending review."
+                });
+            }
+
+            const result = db.prepare(`
+                INSERT INTO ftd_submissions
+                (user_id, ftd_count, bonus, platform_site, game_id, status, created_at)
+                VALUES (?, ?, ?, ?, ?, 'Pending', ?)
+            `).run(
+                req.session.user.id,
+                ftdCount,
+                bonus,
+                platformSite,
+                gameId,
+                new Date().toISOString()
+            );
+
+            broadcastLive("refresh", {
+                reason: "ftd-submitted",
+                userId: req.session.user.id,
+                submissionId: Number(result.lastInsertRowid)
+            });
+
+            res.json({
+                success: true,
+                message: "FTD Incentive submitted for review."
+            });
+        } catch (error) {
+            console.error("FTD SUBMIT ERROR:", error);
+            res.status(500).json({ success: false, message: "Unable to submit FTD Incentive." });
+        }
+    }
+);
+
+/* ========================================
+   ADMIN FTD INCENTIVES
+======================================== */
+
+app.get(
+    "/api/admin/ftd-submissions",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const submissions = db.prepare(`
+                SELECT f.id, f.user_id, f.ftd_count, f.bonus, f.platform_site, f.game_id,
+                       f.status, f.reviewed_at, f.created_at,
+                       u.name AS user_name, u.username AS user_username
+                FROM ftd_submissions f
+                JOIN users u ON u.id = f.user_id
+                ORDER BY f.id DESC
+            `).all();
+
+            res.json({ success: true, submissions });
+        } catch (error) {
+            console.error("ADMIN FTD LIST ERROR:", error);
+            res.status(500).json({ success: false, message: "Unable to load FTD submissions." });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/ftd-submissions/:id/review",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const status = req.body.status;
+            if (!["Approved", "Rejected"].includes(status)) {
+                return res.status(400).json({ success: false, message: "Invalid FTD review status." });
+            }
+
+            const result = db.prepare(`
+                UPDATE ftd_submissions
+                SET status = ?, reviewed_at = ?
+                WHERE id = ?
+            `).run(status, new Date().toISOString(), req.params.id);
+
+            res.json({
+                success: result.changes > 0,
+                message: result.changes ? `FTD submission ${status.toLowerCase()}.` : "FTD submission not found."
+            });
+        } catch (error) {
+            console.error("ADMIN FTD REVIEW ERROR:", error);
+            res.status(500).json({ success: false, message: "Unable to review FTD submission." });
+        }
+    }
+);
+
+/* ========================================
    ADMIN TASKS
 ======================================== */
 

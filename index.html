@@ -1315,6 +1315,101 @@ document.addEventListener("DOMContentLoaded", function () {
 
     </section>
 
+    <div class="card ftd-card">
+    <div class="card-head">
+        <div class="card-title">📈 FTDs Incentives</div>
+    </div>
+
+    <div class="ftd-intro">
+        Pumili ng target incentive at isumite ang iyong
+        Platform Site at Game ID.
+    </div>
+
+    <form id="ftdForm" class="ftd-form">
+        <div class="ftd-tier-grid">
+            <label class="ftd-tier-option">
+                <input type="radio"
+                       name="ftd_count"
+                       value="10"
+                       required>
+                <span>
+                    <strong>10 FTDs</strong>
+                    <small>₱100</small>
+                </span>
+            </label>
+
+            <label class="ftd-tier-option">
+                <input type="radio"
+                       name="ftd_count"
+                       value="25">
+                <span>
+                    <strong>25 FTDs</strong>
+                    <small>₱250 bonus</small>
+                </span>
+            </label>
+
+            <label class="ftd-tier-option">
+                <input type="radio"
+                       name="ftd_count"
+                       value="40">
+                <span>
+                    <strong>40 FTDs</strong>
+                    <small>₱400</small>
+                </span>
+            </label>
+
+            <label class="ftd-tier-option">
+                <input type="radio"
+                       name="ftd_count"
+                       value="70">
+                <span>
+                    <strong>70 FTDs</strong>
+                    <small>₱600</small>
+                </span>
+            </label>
+
+            <label class="ftd-tier-option">
+                <input type="radio"
+                       name="ftd_count"
+                       value="100">
+                <span>
+                    <strong>100 FTDs</strong>
+                    <small>₱800</small>
+                </span>
+            </label>
+        </div>
+
+        <input id="ftdPlatformSite"
+               type="text"
+               placeholder="Platform Site"
+               maxlength="160"
+               required>
+
+        <input id="ftdGameId"
+               type="text"
+               placeholder="Game ID"
+               maxlength="120"
+               required>
+
+        <div id="ftdMsg"
+             class="form-err"
+             role="alert"></div>
+
+        <button class="btn-primary"
+                type="submit">
+            Submit FTD Incentive
+        </button>
+    </form>
+
+    <div class="card-head">
+        <div class="card-title">🕐 My FTD Submissions</div>
+    </div>
+
+    <div id="ftdSubmissions">
+        No FTD submissions yet.
+    </div>
+</div>
+
     <!-- ── INVITE ── -->
     <section id="pageInvite" class="page-wrap hidden">
 

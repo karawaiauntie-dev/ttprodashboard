@@ -262,6 +262,29 @@ db.exec(`
     )
 `);
 
+
+/* ========================================
+   FTD INCENTIVE SUBMISSIONS
+======================================== */
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS ftd_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        ftd_count INTEGER NOT NULL,
+        bonus REAL NOT NULL,
+        platform_site TEXT NOT NULL,
+        game_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Pending',
+        reviewed_at TEXT,
+        created_at TEXT NOT NULL,
+
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
+    )
+`);
+
 /* ========================================
    GLOBAL CHAT
 ======================================== */
