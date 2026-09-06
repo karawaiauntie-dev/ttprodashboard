@@ -375,6 +375,32 @@ db.exec(`
 `);
 
 /* ========================================
+   BONUSES
+======================================== */
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS bonuses (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id     INTEGER NOT NULL,
+        amount      REAL    NOT NULL,
+        status      TEXT    NOT NULL DEFAULT 'pending',
+        expires_at  TEXT,
+        claimed_at  TEXT,
+        created_at  TEXT    NOT NULL,
+        note        TEXT,
+
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
+    )
+`);
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_bonuses_user_status
+        ON bonuses (user_id, status)
+`);
+
+/* ========================================
    USERS MIGRATIONS
 ======================================== */
 

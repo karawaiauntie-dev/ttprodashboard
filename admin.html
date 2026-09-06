@@ -354,6 +354,7 @@ body{background:radial-gradient(circle at 12% 0%,rgba(213,166,58,.12),transparen
     <button class="nav-tab" data-tab="tasks">💼 Tasks</button>
     <button class="nav-tab" data-tab="ftd">📈 FTD Incentives</button>
     <button class="nav-tab" data-tab="notifications">🔔 Notifications</button>
+    <button class="nav-tab" data-tab="bonuses">🎁 Bonuses</button>
   </nav>
 
   <!-- ══ USERS TAB ══ -->
@@ -566,6 +567,86 @@ body{background:radial-gradient(circle at 12% 0%,rgba(213,166,58,.12),transparen
       </div>
     </div>
   </div>
+
+  <!-- ══ BONUSES TAB ══ -->
+  <div id="tab-bonuses" class="page hidden">
+    <div class="page-title">Bonus Rewards</div>
+    <div class="page-sub">Assign claimable cash rewards to users and manage existing bonuses</div>
+
+    <!-- Stat Cards (6.3) -->
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card">
+        <div class="s-label">Pending</div>
+        <div class="s-val" style="color:var(--gold2)" id="bonusStatPending">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Claimed</div>
+        <div class="s-val green" id="bonusStatClaimed">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Expired / Cancelled</div>
+        <div class="s-val red" id="bonusStatExpired">—</div>
+      </div>
+    </div>
+
+    <!-- Create Bonus Form (6.2) -->
+    <div class="card" style="max-width:560px;margin-bottom:24px">
+      <div class="card-head"><h2>🎁 Create Bonus</h2></div>
+      <div style="padding:20px">
+        <form id="bonusForm">
+          <div class="group">
+            <label>Target User</label>
+            <select id="bonusUserId" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text)" required>
+              <option value="">— Select a user —</option>
+            </select>
+          </div>
+          <div class="group">
+            <label>Amount (₱)</label>
+            <div style="position:relative">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gold2);font-weight:700;pointer-events:none">₱</span>
+              <input id="bonusAmount" type="number" min="0.01" step="0.01" placeholder="0.00" style="width:100%;padding:12px 14px 12px 28px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text)" required>
+            </div>
+          </div>
+          <div class="group">
+            <label>Expiry Date &amp; Time <span style="color:var(--muted2);font-size:10px">(optional — leave blank for no expiry)</span></label>
+            <input id="bonusExpiry" type="datetime-local" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text)">
+          </div>
+          <div class="group">
+            <label>Note <span style="color:var(--muted2);font-size:10px">(optional)</span></label>
+            <textarea id="bonusNote" style="width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);resize:vertical;min-height:70px;font:inherit" placeholder="e.g. Christmas bonus, referral reward…"></textarea>
+          </div>
+          <div id="bonusFormErr" class="form-err"></div>
+          <button class="btn-gold" type="submit" id="bonusSubmitBtn">Create Bonus</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Management Table (6.4) -->
+    <div class="card">
+      <div class="card-head">
+        <h2>All Bonuses</h2>
+        <button class="act-btn act-details" style="padding:8px 14px;" onclick="loadAdminBonuses()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Amount</th>
+              <th>Note</th>
+              <th>Status</th>
+              <th>Expires At</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bonusBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ USER DETAIL MODAL ══ -->
@@ -733,12 +814,13 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const tab = btn.dataset.tab;
-    ['users','withdrawals','tasks','ftd','notifications'].forEach(t => {
+    ['users','withdrawals','tasks','ftd','notifications','bonuses'].forEach(t => {
       $(`tab-${t}`).classList.toggle('hidden', t !== tab);
     });
     if (tab === 'withdrawals') loadWithdrawals();
     if (tab === 'tasks') { loadAdminTasks(); loadAdminCompletions(); }
     if (tab === 'ftd') loadFtdSubmissions();
+    if (tab === 'bonuses') { loadBonusUserSelector(); loadAdminBonuses(); }
   };
 });
 
@@ -828,7 +910,11 @@ function startAdminLiveUpdates() {
     adminLiveSource = new EventSource('/api/live');
     adminLiveSource.addEventListener('refresh', () => {
       clearTimeout(adminRefreshTimer);
-      adminRefreshTimer = setTimeout(() => loadUsers(false), 80);
+      adminRefreshTimer = setTimeout(() => {
+        loadUsers(false);
+        const activeTab = document.querySelector('.nav-tab.active');
+        if (activeTab && activeTab.dataset.tab === 'bonuses') loadAdminBonuses();
+      }, 80);
     });
     adminLiveSource.onerror = () => {
       clearTimeout(adminRefreshTimer);
@@ -1273,6 +1359,149 @@ $('taskForm').onsubmit = async e => {
     }
   } catch {}
 })();
+
+/* ═══════════ BONUSES ═══════════ */
+
+async function loadBonusUserSelector() {
+  const sel = $('bonusUserId');
+  // Keep the placeholder option, replace the rest
+  sel.innerHTML = '<option value="">— Select a user —</option>';
+  try {
+    const d = await api('/api/admin/users');
+    (d.users || []).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = `${esc(u.phone)} — ${esc(u.name)}`;
+      sel.appendChild(opt);
+    });
+  } catch {
+    // selector stays with placeholder only — non-fatal
+  }
+}
+
+async function loadAdminBonuses() {
+  const body = $('bonusBody');
+  body.innerHTML = '<tr><td colspan="8"><div class="empty">Loading bonuses…</div></td></tr>';
+  try {
+    const d = await api('/api/admin/bonuses');
+    const list = d.bonuses || [];
+
+    // Update stat cards
+    $('bonusStatPending').textContent  = list.filter(b => b.status === 'pending').length;
+    $('bonusStatClaimed').textContent  = list.filter(b => b.status === 'claimed').length;
+    $('bonusStatExpired').textContent  = list.filter(b => b.status === 'expired').length;
+
+    renderAdminBonuses(list);
+  } catch(err) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty">${esc(err.message)}</div></td></tr>`;
+  }
+}
+
+function renderAdminBonuses(list) {
+  const body = $('bonusBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">🎁</div>No bonuses created yet.</div></td></tr>';
+    return;
+  }
+
+  const statusBadge = s => {
+    if (s === 'pending')  return `<span class="pill pending">⏳ Pending</span>`;
+    if (s === 'claimed')  return `<span class="pill approved">✓ Claimed</span>`;
+    return                       `<span class="pill rejected">✗ Expired</span>`;
+  };
+
+  body.innerHTML = list.map(b => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">#${b.id}</td>
+      <td>
+        <strong>${esc(b.user_name || b.name || '—')}</strong>
+        <div style="color:var(--muted);font-size:12px">${esc(b.user_phone || b.phone || b.username || '')}</div>
+      </td>
+      <td><strong style="color:var(--green3)">${money(b.amount)}</strong></td>
+      <td style="color:var(--muted);font-size:12px;max-width:160px">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(b.note || '')}">
+          ${b.note ? esc(b.note) : '<span style="color:var(--muted2)">—</span>'}
+        </div>
+      </td>
+      <td>${statusBadge(b.status)}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${b.expires_at ? fmtDate(b.expires_at) : '<span style="color:var(--muted2)">Never</span>'}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(b.created_at)}</td>
+      <td>
+        <div class="acts">
+          ${b.status === 'pending'
+            ? `<button class="act-btn act-freeze" onclick="cancelBonus(${b.id})">Cancel</button>`
+            : '<span style="color:var(--muted2);font-size:12px">—</span>'}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function cancelBonus(id) {
+  confirm(
+    'Cancel Bonus',
+    `Are you sure you want to cancel bonus #${id}? It will be marked as expired and the user cannot claim it.`,
+    async () => {
+      try {
+        await api(`/api/admin/bonuses/${id}/cancel`, { method: 'POST' });
+        toast('Bonus cancelled', 'ok');
+        loadAdminBonuses();
+      } catch(err) {
+        toast(err.message, 'err');
+      }
+    }
+  );
+}
+
+$('bonusForm').onsubmit = async e => {
+  e.preventDefault();
+  $('bonusFormErr').textContent = '';
+
+  const userId  = $('bonusUserId').value;
+  const amount  = parseFloat($('bonusAmount').value);
+  const expiry  = $('bonusExpiry').value;   // datetime-local string or ''
+  const note    = $('bonusNote').value.trim();
+
+  // Client-side guards (requirement 1.3, 1.5)
+  if (!userId) {
+    $('bonusFormErr').textContent = 'Please select a user.';
+    return;
+  }
+  if (!amount || amount <= 0 || !isFinite(amount)) {
+    $('bonusFormErr').textContent = 'Amount must be a positive number.';
+    return;
+  }
+  if (expiry) {
+    const expiryMs = new Date(expiry).getTime();
+    if (isNaN(expiryMs) || expiryMs <= Date.now()) {
+      $('bonusFormErr').textContent = 'Expiry datetime must be in the future.';
+      return;
+    }
+  }
+
+  const btn = $('bonusSubmitBtn');
+  btn.textContent = 'Creating...'; btn.disabled = true;
+
+  // Build payload — only include expires_at when set
+  const payload = { user_id: parseInt(userId, 10), amount };
+  if (expiry) payload.expires_at = new Date(expiry).toISOString();
+  if (note)   payload.note = note;
+
+  try {
+    await api('/api/admin/bonuses', { method: 'POST', body: JSON.stringify(payload) });
+    toast('Bonus created!', 'ok');
+    // Clear form
+    $('bonusUserId').value  = '';
+    $('bonusAmount').value  = '';
+    $('bonusExpiry').value  = '';
+    $('bonusNote').value    = '';
+    loadAdminBonuses();
+  } catch(err) {
+    $('bonusFormErr').textContent = err.message;
+  }
+
+  btn.textContent = 'Create Bonus'; btn.disabled = false;
+};
 </script>
 </body>
 </html>

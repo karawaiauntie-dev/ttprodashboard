@@ -2658,9 +2658,9 @@ app.post(
 
 const FTD_INCENTIVES = Object.freeze({
     10: 100,
-    25: 250,
-    40: 400,
-    70: 600,
+    25: 200,
+    40: 300,
+    60: 500,
     100: 800
 });
 
@@ -2709,21 +2709,24 @@ app.post(
                 });
             }
 
+            const todayStr = new Date().toISOString().slice(0, 10);
+
             const existing = db.prepare(`
                 SELECT id, status
                 FROM ftd_submissions
                 WHERE user_id = ?
                   AND ftd_count = ?
                   AND status IN ('Pending', 'Approved')
+                  AND date(created_at) = ?
                 LIMIT 1
-            `).get(req.session.user.id, ftdCount);
+            `).get(req.session.user.id, ftdCount, todayStr);
 
             if (existing) {
                 return res.status(409).json({
                     success: false,
                     message: existing.status === "Approved"
-                        ? "You already have an approved submission for this tier."
-                        : "This FTD tier is already pending review."
+                        ? "You already have an approved submission for this tier today."
+                        : "This FTD tier is already pending review today."
                 });
             }
 
@@ -3788,6 +3791,498 @@ app.post(
 );
 
 /* ========================================
+   ADMIN BONUSES
+======================================== */
+
+app.get(
+    "/api/admin/bonuses",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const bonuses = db
+                .prepare(`
+                    SELECT
+                        b.id,
+                        b.user_id,
+                        b.amount,
+                        b.status,
+                        b.expires_at,
+                        b.claimed_at,
+                        b.created_at,
+                        b.note,
+                        u.username,
+                        u.name AS user_name
+                    FROM bonuses b
+                    LEFT JOIN users u
+                        ON u.id = b.user_id
+                    ORDER BY b.id DESC
+                `)
+                .all();
+
+            res.json({
+                success: true,
+                bonuses
+            });
+
+        } catch (error) {
+            console.error(
+                "ADMIN BONUSES ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/bonuses",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const {
+                user_id,
+                expires_at,
+                note
+            } = req.body;
+
+            const amount =
+                parseFloat(req.body.amount);
+
+            /* Validate amount */
+
+            if (
+                !Number.isFinite(amount) ||
+                amount <= 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Amount must be a positive number."
+                });
+            }
+
+            /* Validate user exists */
+
+            const user = db
+                .prepare(`
+                    SELECT id
+                    FROM users
+                    WHERE id = ?
+                `)
+                .get(user_id);
+
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "User not found."
+                });
+            }
+
+            /* Validate expires_at if provided */
+
+            let expiresIso = null;
+
+            if (expires_at) {
+                const expiresMs =
+                    Date.parse(expires_at);
+
+                if (
+                    isNaN(expiresMs) ||
+                    expiresMs <= Date.now()
+                ) {
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            "Expiry datetime must be in the future."
+                    });
+                }
+
+                expiresIso =
+                    new Date(expiresMs).toISOString();
+            }
+
+            const now =
+                new Date().toISOString();
+
+            const result = db
+                .prepare(`
+                    INSERT INTO bonuses
+                    (
+                        user_id,
+                        amount,
+                        status,
+                        expires_at,
+                        created_at,
+                        note
+                    )
+                    VALUES (?, ?, 'pending', ?, ?, ?)
+                `)
+                .run(
+                    user.id,
+                    amount,
+                    expiresIso,
+                    now,
+                    note || null
+                );
+
+            broadcastLive("refresh", {
+                reason: "bonus-created",
+                userId: Number(user_id),
+                bonusId:
+                    Number(result.lastInsertRowid)
+            });
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+            console.error(
+                "CREATE BONUS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/admin/bonuses/:id/cancel",
+    requireAdmin,
+    (req, res) => {
+        try {
+            const bonus = db
+                .prepare(`
+                    SELECT *
+                    FROM bonuses
+                    WHERE id = ?
+                `)
+                .get(req.params.id);
+
+            if (!bonus) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Bonus not found."
+                });
+            }
+
+            if (bonus.status !== "pending") {
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        "Bonus is not pending."
+                });
+            }
+
+            db.prepare(`
+                UPDATE bonuses
+                SET status = 'expired'
+                WHERE id = ?
+            `).run(req.params.id);
+
+            broadcastLive("refresh", {
+                reason: "bonus-cancelled",
+                bonusId: Number(req.params.id),
+                userId: bonus.user_id
+            });
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+            console.error(
+                "CANCEL BONUS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+/* ========================================
+   USER PENDING BONUS
+======================================== */
+
+app.get(
+    "/api/bonuses/pending",
+    requireUser,
+    (req, res) => {
+        try {
+            const now = new Date().toISOString();
+
+            const bonus = db
+                .prepare(`
+                    SELECT
+                        id,
+                        amount,
+                        expires_at,
+                        created_at,
+                        note
+                    FROM bonuses
+                    WHERE user_id = ?
+                      AND status = 'pending'
+                      AND (
+                          expires_at IS NULL
+                          OR expires_at > ?
+                      )
+                    ORDER BY id ASC
+                    LIMIT 1
+                `)
+                .get(
+                    req.session.user.id,
+                    now
+                );
+
+            res.json({
+                success: true,
+                bonus: bonus || null
+            });
+
+        } catch (error) {
+            console.error(
+                "PENDING BONUS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+/* ========================================
+   USER BONUSES
+======================================== */
+
+app.get(
+    "/api/bonuses",
+    requireUser,
+    (req, res) => {
+        try {
+            const bonuses = db
+                .prepare(`
+                    SELECT
+                        id,
+                        amount,
+                        status,
+                        expires_at,
+                        claimed_at,
+                        created_at,
+                        note
+                    FROM bonuses
+                    WHERE user_id = ?
+                    ORDER BY id DESC
+                `)
+                .all(
+                    req.session.user.id
+                );
+
+            res.json({
+                success: true,
+                bonuses
+            });
+
+        } catch (error) {
+            console.error(
+                "BONUS HISTORY ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+/* ========================================
+   CLAIM BONUS
+======================================== */
+
+app.post(
+    "/api/bonuses/:id/claim",
+    requireUser,
+    (req, res) => {
+        try {
+            const bonusId =
+                Number(req.params.id);
+
+            const userId =
+                req.session.user.id;
+
+            /* Look up the bonus */
+
+            const bonus = db
+                .prepare(`
+                    SELECT
+                        id,
+                        user_id,
+                        amount,
+                        status,
+                        expires_at
+                    FROM bonuses
+                    WHERE id = ?
+                `)
+                .get(bonusId);
+
+            if (!bonus) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Bonus not found."
+                });
+            }
+
+            /* Ownership check */
+
+            if (bonus.user_id !== userId) {
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "Unauthorized."
+                });
+            }
+
+            /* Status check */
+
+            if (bonus.status !== "pending") {
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        "Bonus is not pending."
+                });
+            }
+
+            /* Server-side expiry re-check */
+
+            if (
+                bonus.expires_at &&
+                Date.parse(bonus.expires_at) <=
+                    Date.now()
+            ) {
+                return res.status(410).json({
+                    success: false,
+                    message:
+                        "This bonus has expired."
+                });
+            }
+
+            const now =
+                new Date().toISOString();
+
+            /* Atomic transaction */
+
+            const claimBonus =
+                db.transaction(() => {
+
+                    db.prepare(`
+                        UPDATE bonuses
+                        SET
+                            status = 'claimed',
+                            claimed_at = ?
+                        WHERE id = ?
+                    `).run(
+                        now,
+                        bonusId
+                    );
+
+                    db.prepare(`
+                        UPDATE users
+                        SET balance =
+                            balance + ?
+                        WHERE id = ?
+                    `).run(
+                        bonus.amount,
+                        userId
+                    );
+
+                    const updatedUser =
+                        db.prepare(`
+                            SELECT balance
+                            FROM users
+                            WHERE id = ?
+                        `).get(userId);
+
+                    db.prepare(`
+                        INSERT INTO notifications
+                        (
+                            user_id,
+                            title,
+                            message,
+                            is_read,
+                            created_at
+                        )
+                        VALUES (?, ?, ?, 0, ?)
+                    `).run(
+                        userId,
+                        "🎁 Bonus Claimed!",
+                        `You claimed a bonus of ₱${Number(
+                            bonus.amount
+                        ).toLocaleString(
+                            "en-PH",
+                            {
+                                minimumFractionDigits: 2
+                            }
+                        )}.`,
+                        now
+                    );
+
+                    return updatedUser.balance;
+                });
+
+            const newBalance = claimBonus();
+
+            broadcastLive("refresh", {
+                reason: "bonus-claimed",
+                userId,
+                bonusId
+            });
+
+            res.json({
+                success: true,
+                newBalance,
+                amount: bonus.amount
+            });
+
+        } catch (error) {
+            console.error(
+                "CLAIM BONUS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to process request."
+            });
+        }
+    }
+);
+
+/* ========================================
    START SERVER
 ======================================== */
 
@@ -3832,3 +4327,49 @@ app.listen(
         console.log("");
     }
 );
+
+/* ========================================
+   BONUS EXPIRY BACKGROUND JOB
+======================================== */
+
+setInterval(() => {
+    try {
+        const now = new Date().toISOString();
+
+        const expireBonus = db.transaction(() => {
+            const expired = db
+                .prepare(`
+                    SELECT id
+                    FROM bonuses
+                    WHERE status = 'pending'
+                      AND expires_at IS NOT NULL
+                      AND expires_at <= ?
+                `)
+                .all(now);
+
+            if (expired.length === 0) {
+                return 0;
+            }
+
+            const ids = expired.map(r => r.id);
+
+            db.prepare(`
+                UPDATE bonuses
+                SET status = 'expired'
+                WHERE id IN (${ids.map(() => "?").join(", ")})
+            `).run(...ids);
+
+            return ids.length;
+        });
+
+        const updatedCount = expireBonus();
+
+        if (updatedCount > 0) {
+            broadcastLive("refresh", {
+                reason: "bonus-expired"
+            });
+        }
+    } catch (error) {
+        console.error("BONUS EXPIRY JOB ERROR:", error);
+    }
+}, 60_000).unref();
